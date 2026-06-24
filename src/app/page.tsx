@@ -159,6 +159,18 @@ export default function Dashboard() {
 
   const t = translations[lang];
 
+  // Dynamically compute the banner gradient based on active lesson level
+  const levelCode = lessonData?.levelCode || '';
+  const bannerGradient = 
+    levelCode === 'A1' ? 'from-emerald-600 to-teal-800 dark:from-emerald-950/40 dark:to-slate-950 border-emerald-500/20' :
+    levelCode === 'A2' ? 'from-teal-600 to-cyan-800 dark:from-teal-950/40 dark:to-slate-950 border-teal-500/20' :
+    levelCode === 'B1' ? 'from-indigo-600 to-blue-800 dark:from-indigo-950/40 dark:to-slate-950 border-indigo-500/20' :
+    levelCode === 'B1+' ? 'from-violet-600 to-indigo-800 dark:from-violet-950/40 dark:to-slate-950 border-violet-500/20' :
+    levelCode === 'B2.1' ? 'from-purple-600 to-fuchsia-800 dark:from-purple-950/40 dark:to-slate-950 border-purple-500/20' :
+    levelCode === 'B2.2' ? 'from-fuchsia-600 to-rose-800 dark:from-fuchsia-950/40 dark:to-slate-950 border-fuchsia-500/20' :
+    levelCode === 'C1' ? 'from-rose-600 to-orange-800 dark:from-rose-950/40 dark:to-slate-950 border-rose-500/20' :
+    'from-slate-900 to-indigo-950 border-slate-800';
+
   // Helper: Play Base64 Audio via Web Audio PCM-to-WAV converter
   const playPCMBase64 = (base64Data: string, sampleRate: number) => {
     try {
@@ -562,9 +574,9 @@ export default function Dashboard() {
               {LEVELS.map((lvl) => {
                 const isActive = selectedLevel?.code === lvl.code;
                 return (
-                  <button key={lvl.code} onClick={() => setSelectedLevel(lvl)} className={`w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all cursor-pointer ${isActive ? "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-500/10 font-bold" : "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"}`}>
+                  <button key={lvl.code} onClick={() => setSelectedLevel(lvl)} className={`w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer ${isActive ? "bg-gradient-to-r from-indigo-50/70 to-indigo-100/30 dark:from-indigo-950/40 dark:to-indigo-950/20 border-indigo-500 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold ltr:border-l-4 rtl:border-r-4 shadow-sm" : "bg-white dark:bg-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300"}`}>
                     <span>{lvl.label} ({lvl.code})</span>
-                    <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-sans font-semibold">
+                    <span className="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-sans font-semibold">
                       {t[lvl.subKey as keyof typeof t]}
                     </span>
                   </button>
@@ -645,38 +657,38 @@ export default function Dashboard() {
           {lessonData && !loading && (
             <div className="space-y-6">
               {/* Banner */}
-              <div className="bg-gradient-to-l from-slate-900 to-indigo-950 text-white p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden">
-                <div className="absolute -top-10 -left-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
-                <div className="relative z-10 space-y-2">
-                  <span className="bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded text-[9px] tracking-widest uppercase">
+              <div className={`bg-gradient-to-l ${bannerGradient} text-white p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden border border-slate-100/5`}>
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="relative z-10 space-y-2.5">
+                  <span className="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-[9px] tracking-wider uppercase shadow-sm">
                     English File {lessonData.levelCode}
                   </span>
                   <h2 className="text-xl md:text-2xl font-bold text-amber-400 leading-tight" dir="ltr">
                     {lessonData.lessonTitle}
                   </h2>
-                  <p className="text-slate-400 text-[11px] max-w-xl leading-relaxed">{t.lessonBannerDesc}</p>
+                  <p className="text-slate-200 dark:text-slate-400 text-[11px] max-w-xl leading-relaxed">{t.lessonBannerDesc}</p>
                 </div>
               </div>
 
-              {/* Tabs Navigation */}
-              <div className="flex overflow-x-auto bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 scrollbar-none gap-1">
-                {[
-                  { id: 'vocab', label: t.tabVocab, icon: BookOpen },
-                  { id: 'grammar', label: t.tabGrammar, icon: Layers },
-                  { id: 'pron', label: t.tabPron, icon: Volume2 },
-                  { id: 'dialogue', label: t.tabDialogue, icon: MessageSquare },
-                  { id: 'challenge', label: t.tabChallenge, icon: PenTool },
-                ].map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  const Icon = tab.icon;
-                  return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${isActive ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30' : 'text-slate-600 dark:text-slate-400 hover:text-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
-                      <Icon className="w-4 h-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                {/* Tabs Navigation */}
+                <div className="flex overflow-x-auto bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md p-1 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 scrollbar-none gap-1 shadow-inner">
+                  {[
+                    { id: 'vocab', label: t.tabVocab, icon: BookOpen },
+                    { id: 'grammar', label: t.tabGrammar, icon: Layers },
+                    { id: 'pron', label: t.tabPron, icon: Volume2 },
+                    { id: 'dialogue', label: t.tabDialogue, icon: MessageSquare },
+                    { id: 'challenge', label: t.tabChallenge, icon: PenTool },
+                  ].map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    const Icon = tab.icon;
+                    return (
+                      <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shrink-0 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${isActive ? 'text-indigo-600 dark:text-indigo-300 bg-white dark:bg-slate-800 shadow-sm border border-slate-200/20 dark:border-slate-700/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
+                        <Icon className="w-4 h-4" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
               {/* ===== TAB: VOCABULARY ===== */}
               {activeTab === 'vocab' && (
@@ -688,52 +700,58 @@ export default function Dashboard() {
                     </h3>
                     <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">{lessonData.vocabulary.theme}</span>
                   </div>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {lessonData.vocabulary.words.map((w: any, idx: number) => (
-                      <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-slate-800 transition-colors border-r-4 border-emerald-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div className="space-y-1 text-right w-full">
-                          <div className="flex items-center space-x-2 space-x-reverse">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{w.word}</span>
-                            <span className="text-xs text-slate-400 font-sans" dir="ltr">{w.phonetics}</span>
-                            <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{w.arabicTranslation}</span>
+                      <div key={idx} className="p-5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-sm hover:scale-[1.01] transition-all flex flex-col justify-between gap-4">
+                        <div className="space-y-2 text-left" dir="ltr">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-0.5">
+                              <span className="font-sans font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{w.word}</span>
+                              <p className="text-[10px] text-slate-400 font-sans">{w.phonetics}</p>
+                            </div>
+                            <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full font-tajawal rtl:text-right" dir={t.dir}>
+                              {w.arabicTranslation}
+                            </span>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 text-left font-sans mt-1 leading-relaxed" dir="ltr">{w.definition}</p>
-                          <p className="text-xs italic text-indigo-600 dark:text-indigo-400 text-left font-sans" dir="ltr">&quot;{w.exampleSentence}&quot;</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-sans leading-relaxed pt-1.5 border-t border-slate-200/30 dark:border-slate-850/30">{w.definition}</p>
+                          <p className="text-xs italic text-indigo-600/90 dark:text-indigo-400/90 font-sans">&quot;{w.exampleSentence}&quot;</p>
                         </div>
-                        <button onClick={() => speakText(`${w.word}. ${w.exampleSentence}`)} className="text-[11px] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm shrink-0 text-slate-600 dark:text-slate-400 cursor-pointer">
-                          <Volume2 className="w-3.5 h-3.5 text-emerald-500" />{t.listeningBtn}
-                        </button>
+                        <div className="flex justify-end pt-1">
+                          <button onClick={() => speakText(`${w.word}. ${w.exampleSentence}`)} className="text-[10px] font-bold bg-white hover:bg-indigo-50 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-300 dark:hover:border-indigo-900 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 cursor-pointer transition-all shadow-sm">
+                            <Volume2 className="w-3.5 h-3.5 text-indigo-500" />{t.listeningBtn}
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
 
                   {/* Matching Game */}
-                  <div className="p-5 bg-indigo-50/40 dark:bg-indigo-950/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 space-y-4 mt-6">
+                  <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       <h4 className="text-xs font-black uppercase text-indigo-900 dark:text-indigo-300 tracking-wider">{t.matchingTitle}</h4>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{t.matchingDesc}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.matchingDesc}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         {lessonData.vocabulary.matchingChallenge.map((item: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 text-left" dir="ltr">{idx + 1}. {item.term}</div>
+                          <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-300 text-left hover:scale-[1.01] transition-transform" dir="ltr">{idx + 1}. {item.term}</div>
                         ))}
                       </div>
                       <div className="space-y-2">
                         {lessonData.vocabulary.matchingChallenge.map((_: any, idx: number) => (
-                          <select key={idx} value={vocabMatches[idx] !== undefined ? vocabMatches[idx] : ''} onChange={(e) => setVocabMatches(prev => ({ ...prev, [idx]: e.target.value === '' ? -1 : parseInt(e.target.value, 10) }))} className="w-full p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 focus:ring-1 focus:ring-indigo-500 font-sans cursor-pointer" dir="ltr">
+                          <select key={idx} value={vocabMatches[idx] !== undefined ? vocabMatches[idx] : ''} onChange={(e) => setVocabMatches(prev => ({ ...prev, [idx]: e.target.value === '' ? -1 : parseInt(e.target.value, 10) }))} className="w-full p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 focus:outline-none focus:border-indigo-500 font-sans cursor-pointer shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors" dir="ltr">
                             <option value="">{t.matchingSelectDefault.replace('...', `#${idx + 1}`)}</option>
                             {shuffledDefs.map((def) => (<option key={def.id} value={def.id}>{def.text}</option>))}
                           </select>
                         ))}
                       </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
-                      <button onClick={checkVocabMatching} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm cursor-pointer">{t.matchingCheck}</button>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
+                      <button onClick={checkVocabMatching} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.matchingCheck}</button>
                       {vocabFeedback && (
-                        <div className={`text-xs font-bold flex items-center gap-1.5 ${vocabFeedback.isError ? 'text-rose-500' : 'text-emerald-600'}`}>
-                          {vocabFeedback.isError ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                        <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${vocabFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
+                          {vocabFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
                           <span>{vocabFeedback.text}</span>
                         </div>
                       )}
@@ -751,45 +769,58 @@ export default function Dashboard() {
                       <span>{t.grammarTitle}</span>
                     </h3>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-800 space-y-2">
-                    <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{lessonData.grammar.title}</h4>
+                  <div className="p-5 bg-gradient-to-r from-slate-50 to-indigo-50/20 dark:from-slate-800/40 dark:to-slate-800/20 rounded-2xl border-l-4 border-amber-500 shadow-sm space-y-2 text-left" dir="ltr">
+                    <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{lessonData.grammar.title}</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans" dir="ltr">{lessonData.grammar.conceptExplanation}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {lessonData.grammar.rules.map((rule: any, idx: number) => (
-                      <div key={idx} className="bg-slate-50 dark:bg-slate-800/20 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-left" dir="ltr">
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-200 mb-2 border-b border-slate-200 dark:border-slate-800 pb-1.5 font-sans">{rule.rule}</h4>
-                        <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-400 font-mono">{rule.example}</div>
+                      <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 text-left shadow-sm flex flex-col justify-between" dir="ltr">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800/80 pb-2 font-sans">{rule.rule}</h4>
+                        </div>
+                        <div className="p-3 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-200/20 dark:border-amber-900/30 text-xs text-amber-800 dark:text-amber-300 font-mono tracking-tight">{rule.example}</div>
                       </div>
                     ))}
                   </div>
                   {/* Grammar Quiz */}
-                  <div className="p-5 bg-amber-50/30 dark:bg-amber-950/10 rounded-2xl border border-amber-100 dark:border-amber-900/40 space-y-4 mt-6">
+                  <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
                     <div className="flex items-center gap-2">
                       <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <h4 className="text-xs font-black uppercase text-amber-900 dark:text-amber-300 tracking-wider">{t.grammarQuizTitle}</h4>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{t.grammarQuizDesc}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.grammarQuizDesc}</p>
                     <div className="space-y-4">
                       {lessonData.grammar.quickQuiz.map((quiz: any, quizIdx: number) => (
-                        <div key={quizIdx} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                          <p className="font-bold text-slate-700 dark:text-slate-300 text-xs text-left font-sans" dir="ltr">{quizIdx + 1}. {quiz.question}</p>
-                          <div className="flex flex-col sm:flex-row gap-4 pt-1" dir="ltr">
-                            {quiz.options.map((opt: string, optIdx: number) => (
-                              <label key={optIdx} className="flex items-center gap-2 cursor-pointer font-sans text-xs text-slate-600 dark:text-slate-400 select-none">
-                                <input type="radio" name={`grammar-quiz-${quizIdx}`} value={optIdx} checked={quizAnswers[quizIdx] === optIdx} onChange={() => setQuizAnswers(prev => ({ ...prev, [quizIdx]: optIdx }))} className="text-indigo-600 w-4 h-4 cursor-pointer" />
-                                <span>{opt}</span>
-                              </label>
-                            ))}
+                        <div key={quizIdx} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/85 dark:border-slate-800/85 shadow-sm space-y-3">
+                          <p className="font-extrabold text-slate-900 dark:text-slate-100 text-xs text-left font-sans" dir="ltr">{quizIdx + 1}. {quiz.question}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5" dir="ltr">
+                            {quiz.options.map((opt: string, optIdx: number) => {
+                              const isSelected = quizAnswers[quizIdx] === optIdx;
+                              return (
+                                <button
+                                  key={optIdx}
+                                  type="button"
+                                  onClick={() => setQuizAnswers(prev => ({ ...prev, [quizIdx]: optIdx }))}
+                                  className={`p-3 rounded-xl border text-xs font-bold text-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none ${
+                                    isSelected
+                                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                      : 'bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
-                      <button onClick={checkGrammarQuiz} className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm cursor-pointer">{t.grammarQuizCheck}</button>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
+                      <button onClick={checkGrammarQuiz} className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.grammarQuizCheck}</button>
                       {quizFeedback && (
-                        <div className={`text-xs font-bold flex items-center gap-1.5 ${quizFeedback.isError ? 'text-rose-500' : 'text-emerald-600'}`}>
-                          {quizFeedback.isError ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                        <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${quizFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
+                          {quizFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
                           <span>{quizFeedback.text}</span>
                         </div>
                       )}
@@ -848,15 +879,32 @@ export default function Dashboard() {
                     <h4 className="text-[10px] font-bold text-teal-800 dark:text-teal-400 uppercase tracking-widest">{t.practicalScenarioTitle}</h4>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1 font-sans" dir="ltr">{lessonData.practicalEnglish.scenario}</p>
                   </div>
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800/10 shadow-sm">
-                    <div className="bg-slate-900 text-white px-4 py-3 text-xs font-bold uppercase tracking-wider">{t.practicalDialogueHeader}</div>
-                    <div className="p-4 space-y-4">
-                      {lessonData.practicalEnglish.dialogue.map((turn: any, idx: number) => (
-                        <div key={idx} className="flex items-start gap-2 text-left font-sans" dir="ltr">
-                          <span className="font-black text-indigo-700 dark:text-indigo-400 w-16 shrink-0 text-right pr-2 select-none">{turn.speaker}:</span>
-                          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 max-w-lg text-slate-800 dark:text-slate-300 text-xs leading-relaxed">{turn.speech}</div>
-                        </div>
-                      ))}
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950/20 shadow-inner">
+                    <div className="bg-slate-900 text-white px-4 py-3.5 text-xs font-bold uppercase tracking-wider flex justify-between items-center border-b border-slate-850">
+                      <span>{t.practicalDialogueHeader}</span>
+                      <span className="text-[10px] text-slate-400 font-medium normal-case">Immersive Chat View</span>
+                    </div>
+                    <div className="p-4 md:p-6 space-y-4 max-h-[400px] overflow-y-auto bg-slate-100/30 dark:bg-slate-950/40 scrollbar-none">
+                      {(() => {
+                        const dialogue = lessonData.practicalEnglish.dialogue;
+                        const speakerNames = Array.from(new Set(dialogue.map((d: any) => d.speaker)));
+                        const speakerLeft = speakerNames[0] || '';
+                        return dialogue.map((turn: any, idx: number) => {
+                          const isLeft = turn.speaker === speakerLeft;
+                          return (
+                            <div key={idx} className={`flex flex-col ${isLeft ? 'items-start' : 'items-end'} w-full space-y-1 animate-fadeIn`}>
+                              <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 px-1">{turn.speaker}</span>
+                              <div className={`p-3.5 rounded-2xl max-w-[85%] md:max-w-md text-xs leading-relaxed shadow-sm border ${
+                                isLeft 
+                                  ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200/60 dark:border-slate-800/80 rounded-tl-none bubble-in'
+                                  : 'bg-indigo-50/70 dark:bg-indigo-950/30 text-slate-800 dark:text-slate-200 border-indigo-100/50 dark:border-indigo-900/40 rounded-tr-none bubble-out'
+                              }`}>
+                                <p>{turn.speech}</p>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                   <div className="space-y-3">
