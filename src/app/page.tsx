@@ -24,6 +24,11 @@ import {
   BarChart3,
   Archive,
   Save,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
+  Home,
 } from 'lucide-react';
 import { translations, Language } from '@/utils/translations';
 import {
@@ -54,6 +59,8 @@ export default function Dashboard() {
   const [accent, setAccent] = useState<'UK' | 'US'>('UK');
   const [apiKey, setApiKey] = useState<string>('');
   const [geminiModel, setGeminiModel] = useState<string>('gemini-2.5-flash');
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [wizardStep, setWizardStep] = useState<number>(0);
   
   // Selection & UI states
   const [selectedLevel, setSelectedLevel] = useState<typeof LEVELS[0] | null>(null);
@@ -108,6 +115,35 @@ export default function Dashboard() {
     const savedModel = localStorage.getItem('ef_geminiModel');
     if (savedModel) setGeminiModel(savedModel);
   }, []);
+
+  // Monitor mobile viewports
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Bidirectional sync between wizardStep and activeTab on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+    const steps: Array<typeof activeTab> = ['vocab', 'grammar', 'pron', 'dialogue', 'challenge'];
+    const targetTab = steps[wizardStep];
+    if (targetTab && activeTab !== targetTab) {
+      setActiveTab(targetTab);
+    }
+  }, [wizardStep, isMobile]);
+
+  useEffect(() => {
+    const steps: Array<typeof activeTab> = ['vocab', 'grammar', 'pron', 'dialogue', 'challenge'];
+    const idx = steps.indexOf(activeTab);
+    if (idx !== -1 && wizardStep !== idx) {
+      setWizardStep(idx);
+    }
+  }, [activeTab]);
 
   // Sync theme with DOM classes
   useEffect(() => {
@@ -278,6 +314,7 @@ export default function Dashboard() {
     setLoading(true);
     setLessonData(null);
     setCurrentLessonId(null);
+    setWizardStep(0);
     resetInteractiveStates();
 
     try {
@@ -354,6 +391,7 @@ export default function Dashboard() {
   const loadSavedLesson = (saved: SavedLesson) => {
     setLessonData(saved.data);
     setCurrentLessonId(saved.id || null);
+    setWizardStep(0);
     
     // Find and select the matching level
     const matchingLevel = LEVELS.find(l => l.code === saved.levelCode);
@@ -492,6 +530,546 @@ export default function Dashboard() {
     }
   };
 
+  // Mobile Roadmap Render Helper
+  const renderMobileRoadmap = () => {
+    return (
+      <div className="space-y-6 animate-fadeIn pb-12">
+        <div className="text-center space-y-2 py-4">
+          <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl text-[10px] tracking-wider uppercase shadow-md select-none">
+            {lang === 'AR' ? 'منهج ENGLISH FILE تفاعلي' : 'ENGLISH FILE INTERACTIVE'}
+          </span>
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 mt-2">
+            {lang === 'AR' ? 'خارطة طريق التعلّم' : 'Learning Roadmap'}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+            {lang === 'AR' ? 'اختر مستواك لبدء درس تفاعلي ذكي' : 'Choose a level to generate an instant smart lesson'}
+          </p>
+        </div>
+
+        {/* Timeline Path */}
+        <div className="relative pl-6 rtl:pr-6 border-l-2 rtl:border-r-2 border-slate-200 dark:border-slate-800 space-y-6 ml-4 rtl:mr-4">
+          {LEVELS.map((lvl) => {
+            const isActive = selectedLevel?.code === lvl.code;
+            return (
+              <div key={lvl.code} className="relative">
+                {/* Node indicator */}
+                <button 
+                  onClick={() => setSelectedLevel(lvl)}
+                  className={`absolute -left-[35px] rtl:-right-[35px] top-2 w-7 h-7 rounded-full border-4 flex items-center justify-center font-sans text-[10px] font-black transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-indigo-600 border-indigo-200 dark:border-indigo-950 text-white scale-110 shadow-md ring-4 ring-indigo-500/20'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-indigo-400 dark:hover:border-indigo-800'
+                  }`}
+                >
+                  {lvl.code}
+                </button>
+
+                {/* Level Card */}
+                <div 
+                  onClick={() => setSelectedLevel(lvl)}
+                  className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-50/70 to-indigo-100/30 dark:from-indigo-950/40 dark:to-indigo-950/20 border-indigo-500 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm'
+                      : 'bg-white dark:bg-slate-900 hover:bg-slate-50/30 dark:hover:bg-slate-850/30 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="text-left rtl:text-right">
+                      <h4 className="font-extrabold text-xs text-slate-900 dark:text-slate-100">
+                        {lvl.label}
+                      </h4>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                        {t[lvl.subKey as keyof typeof t]}
+                      </span>
+                    </div>
+                    {isActive && (
+                      <Sparkles className="w-4 h-4 text-indigo-500 dark:text-indigo-400 animate-pulse" />
+                    )}
+                  </div>
+
+                  {isActive && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 animate-fadeIn text-left rtl:text-right">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
+                        <strong>{lang === 'AR' ? 'التركيز:' : 'Focus:'}</strong> {lvl.topic}
+                      </p>
+                      <button 
+                        disabled={loading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          generateLesson();
+                        }}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        <span>{t.generateBtn}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom Audio Reader Box for Mobile */}
+        <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
+          <div className="flex items-center gap-2 text-amber-400">
+            <Volume2 className="w-4 h-4 animate-pulse" />
+            <h3 className="font-bold text-xs">{t.ttsTitle}</h3>
+          </div>
+          <p className="text-[11px] text-slate-400 leading-relaxed">{t.ttsDesc}</p>
+          <textarea value={ttsText} onChange={(e) => setTtsText(e.target.value)} rows={2} className="w-full p-2.5 text-xs bg-slate-800 border border-slate-700 text-slate-100 rounded-xl focus:outline-none focus:border-amber-400 font-sans resize-none" dir="ltr" placeholder={t.ttsPlaceholder} />
+          <button disabled={ttsLoading} onClick={() => speakText(ttsText)} className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-amber-600 text-slate-950 font-black py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex justify-center items-center gap-2">
+            {ttsLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+            <span>{t.ttsTrigger}</span>
+          </button>
+          {ttsLoading && (
+            <div className="flex items-center justify-center gap-2 py-1.5 text-[10px] text-amber-400 bg-slate-800 rounded-lg">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>{t.ttsLoading}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Mobile Wizard Render Helper
+  const renderMobileWizard = () => {
+    if (!lessonData) return null;
+    const progressPercent = (wizardStep + 1) * 20;
+    const progressText = t.wizardStepProgress
+      .replace('{current}', String(wizardStep + 1))
+      .replace('{total}', '5');
+
+    return (
+      <div className="space-y-6 animate-fadeIn pb-28">
+        {/* Wizard Header and Progress */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-3 transition-colors duration-300">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full text-[9px] uppercase">
+                {lessonData.levelCode}
+              </span>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 font-sans">
+                {progressText}
+              </span>
+            </div>
+            <button 
+              onClick={() => setLessonData(null)}
+              className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-all"
+            >
+              <Home className="w-3.5 h-3.5 text-indigo-500" />
+              <span>{t.wizardLevelMap}</span>
+            </button>
+          </div>
+          
+          <div className="space-y-1">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 text-left" dir="ltr">
+              {lessonData.lessonTitle}
+            </h3>
+            {/* Progress track */}
+            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all duration-300 ease-out rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" 
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Lesson Banner inside Wizard (Small version) */}
+        <div className={`bg-gradient-to-l ${bannerGradient} text-white p-4 rounded-2xl shadow-md relative overflow-hidden border border-slate-100/5`}>
+          <div className="absolute -top-10 -left-10 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10 space-y-1">
+            <span className="bg-amber-400 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[8px] tracking-wider uppercase shadow-sm">
+              Step {wizardStep + 1}
+            </span>
+            <p className="text-slate-100 text-[10px] leading-relaxed">
+              {activeTab === 'vocab' && t.vocabTitle}
+              {activeTab === 'grammar' && t.grammarTitle}
+              {activeTab === 'pron' && t.pronTitle}
+              {activeTab === 'dialogue' && t.practicalTitle}
+              {activeTab === 'challenge' && t.challengeTitle}
+            </p>
+          </div>
+        </div>
+
+        {/* Content area */}
+        <div className="space-y-6">
+          {renderActiveTabContent()}
+        </div>
+
+        {/* Sticky Glassmorphic Bottom Navigation Bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 px-4 py-4 pb-safe-bottom flex items-center justify-between shadow-[0_-8px_30px_rgb(0,0,0,0.06)] transition-colors duration-300">
+          {/* Back button */}
+          <button
+            disabled={wizardStep === 0}
+            onClick={() => setWizardStep(prev => Math.max(0, prev - 1))}
+            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {lang === 'AR' ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            <span>{t.wizardBack}</span>
+          </button>
+
+          {/* Next / Submit button */}
+          {wizardStep < 4 ? (
+            <button
+              onClick={() => setWizardStep(prev => Math.min(4, prev + 1))}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-indigo-600/10"
+            >
+              <span>{t.wizardNext}</span>
+              {lang === 'AR' ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </button>
+          ) : (
+            <button
+              onClick={submitWritingAnswers}
+              disabled={writingCorrecting}
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white font-bold py-2.5 px-5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-emerald-600/10"
+            >
+              {writingCorrecting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
+              <span>{t.wizardFinish}</span>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render Tab Contents Helper
+  const renderActiveTabContent = () => {
+    if (!lessonData) return null;
+    return (
+      <>
+        {/* ===== TAB: VOCABULARY ===== */}
+        {activeTab === 'vocab' && (
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex justify-between items-center">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span>{t.vocabTitle}</span>
+              </h3>
+              <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">{lessonData.vocabulary.theme}</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {lessonData.vocabulary.words.map((w: any, idx: number) => (
+                <div key={idx} className="p-5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-sm hover:scale-[1.01] transition-all flex flex-col justify-between gap-4">
+                  <div className="space-y-2 text-left" dir="ltr">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-0.5">
+                        <span className="font-sans font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{w.word}</span>
+                        <p className="text-[10px] text-slate-400 font-sans">{w.phonetics}</p>
+                      </div>
+                      <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full font-tajawal rtl:text-right" dir={t.dir}>
+                        {w.arabicTranslation}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-sans leading-relaxed pt-1.5 border-t border-slate-200/30 dark:border-slate-850/30">{w.definition}</p>
+                    <p className="text-xs italic text-indigo-600/90 dark:text-indigo-400/90 font-sans">&quot;{w.exampleSentence}&quot;</p>
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <button onClick={() => speakText(`${w.word}. ${w.exampleSentence}`)} className="text-[10px] font-bold bg-white hover:bg-indigo-50 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-300 dark:hover:border-indigo-900 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 cursor-pointer transition-all shadow-sm">
+                      <Volume2 className="w-3.5 h-3.5 text-indigo-500" />{t.listeningBtn}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Matching Game */}
+            <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <h4 className="text-xs font-black uppercase text-indigo-900 dark:text-indigo-300 tracking-wider">{t.matchingTitle}</h4>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.matchingDesc}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  {lessonData.vocabulary.matchingChallenge.map((item: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-300 text-left hover:scale-[1.01] transition-transform" dir="ltr">{idx + 1}. {item.term}</div>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  {lessonData.vocabulary.matchingChallenge.map((_: any, idx: number) => (
+                    <select key={idx} value={vocabMatches[idx] !== undefined ? vocabMatches[idx] : ''} onChange={(e) => setVocabMatches(prev => ({ ...prev, [idx]: e.target.value === '' ? -1 : parseInt(e.target.value, 10) }))} className="w-full p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 focus:outline-none focus:border-indigo-500 font-sans cursor-pointer shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors" dir="ltr">
+                      <option value="">{t.matchingSelectDefault.replace('...', `#${idx + 1}`)}</option>
+                      {shuffledDefs.map((def) => (<option key={def.id} value={def.id}>{def.text}</option>))}
+                    </select>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
+                <button onClick={checkVocabMatching} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.matchingCheck}</button>
+                {vocabFeedback && (
+                  <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${vocabFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
+                    {vocabFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
+                    <span>{vocabFeedback.text}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== TAB: GRAMMAR ===== */}
+        {activeTab === 'grammar' && (
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <span>{t.grammarTitle}</span>
+              </h3>
+            </div>
+            <div className="p-5 bg-gradient-to-r from-slate-50 to-indigo-50/20 dark:from-slate-800/40 dark:to-slate-800/20 rounded-2xl border-l-4 border-amber-500 shadow-sm space-y-2 text-left" dir="ltr">
+              <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{lessonData.grammar.title}</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans" dir="ltr">{lessonData.grammar.conceptExplanation}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {lessonData.grammar.rules.map((rule: any, idx: number) => (
+                <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 text-left shadow-sm flex flex-col justify-between" dir="ltr">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800/80 pb-2 font-sans">{rule.rule}</h4>
+                  </div>
+                  <div className="p-3 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-200/20 dark:border-amber-900/30 text-xs text-amber-800 dark:text-amber-300 font-mono tracking-tight">{rule.example}</div>
+                </div>
+              ))}
+            </div>
+            {/* Grammar Quiz */}
+            <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <h4 className="text-xs font-black uppercase text-amber-900 dark:text-amber-300 tracking-wider">{t.grammarQuizTitle}</h4>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.grammarQuizDesc}</p>
+              <div className="space-y-4">
+                {lessonData.grammar.quickQuiz.map((quiz: any, quizIdx: number) => (
+                  <div key={quizIdx} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/85 dark:border-slate-800/85 shadow-sm space-y-3">
+                    <p className="font-extrabold text-slate-900 dark:text-slate-100 text-xs text-left font-sans" dir="ltr">{quizIdx + 1}. {quiz.question}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5" dir="ltr">
+                      {quiz.options.map((opt: string, optIdx: number) => {
+                        const isSelected = quizAnswers[quizIdx] === optIdx;
+                        return (
+                          <button
+                            key={optIdx}
+                            type="button"
+                            onClick={() => setQuizAnswers(prev => ({ ...prev, [quizIdx]: optIdx }))}
+                            className={`p-3 rounded-xl border text-xs font-bold text-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none ${
+                              isSelected
+                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                : 'bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
+                <button onClick={checkGrammarQuiz} className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.grammarQuizCheck}</button>
+                {quizFeedback && (
+                  <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${quizFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
+                    {quizFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
+                    <span>{quizFeedback.text}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== TAB: PRONUNCIATION ===== */}
+        {activeTab === 'pron' && (
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Volume2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                <span>{t.pronTitle}</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {lessonData.pronunciation.soundsToCompare.map((soundDesc: string, idx: number) => (
+                <div key={idx} className="p-5 bg-sky-50/30 dark:bg-sky-950/10 rounded-2xl border border-sky-100 dark:border-sky-900/30 space-y-3 text-center">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed font-semibold" dir="ltr">{soundDesc}</p>
+                  <button onClick={() => speakText(soundDesc)} className="mt-2 text-xs bg-white dark:bg-slate-800 border border-sky-200 dark:border-slate-700 px-4 py-2 rounded-full mx-auto flex items-center gap-1.5 hover:bg-sky-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer shadow-sm">
+                    <Volume2 className="w-3.5 h-3.5 text-sky-600" />{t.pronListenBtn}
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">{t.pronGuideTitle}</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.pronGuideDesc}</p>
+              <div className="flex flex-wrap gap-2.5 pt-1">
+                {lessonData.pronunciation.wordsWithAudio.map((word: string, idx: number) => (
+                  <button key={idx} onClick={() => speakText(word)} className="bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-700 border border-slate-200 dark:border-slate-800 text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm text-slate-700 dark:text-slate-400 font-bold cursor-pointer" dir="ltr">
+                    <span>{word}</span>
+                    <Play className="w-3 h-3 text-slate-400 fill-current" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== TAB: PRACTICAL ENGLISH ===== */}
+        {activeTab === 'dialogue' && (
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex justify-between items-center">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <span>{t.practicalTitle}</span>
+              </h3>
+              <button onClick={playFullDialogue} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <Play className="w-3.5 h-3.5 fill-current" />{t.practicalPlayFull}
+              </button>
+            </div>
+            <div className="p-4 bg-teal-50/30 dark:bg-teal-950/10 rounded-2xl border border-teal-100/80 dark:border-teal-900/30">
+              <h4 className="text-[10px] font-bold text-teal-800 dark:text-teal-400 uppercase tracking-widest">{t.practicalScenarioTitle}</h4>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1 font-sans" dir="ltr">{lessonData.practicalEnglish.scenario}</p>
+            </div>
+            <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950/20 shadow-inner">
+              <div className="bg-slate-900 text-white px-4 py-3.5 text-xs font-bold uppercase tracking-wider flex justify-between items-center border-b border-slate-850">
+                <span>{t.practicalDialogueHeader}</span>
+                <span className="text-[10px] text-slate-400 font-medium normal-case">Immersive Chat View</span>
+              </div>
+              <div className="p-4 md:p-6 space-y-4 max-h-[400px] overflow-y-auto bg-slate-100/30 dark:bg-slate-950/40 scrollbar-none">
+                {(() => {
+                  const dialogue = lessonData.practicalEnglish.dialogue;
+                  const speakerNames = Array.from(new Set(dialogue.map((d: any) => d.speaker)));
+                  const speakerLeft = speakerNames[0] || '';
+                  return dialogue.map((turn: any, idx: number) => {
+                    const isLeft = turn.speaker === speakerLeft;
+                    return (
+                      <div key={idx} className={`flex flex-col ${isLeft ? 'items-start' : 'items-end'} w-full space-y-1 animate-fadeIn`}>
+                        <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 px-1">{turn.speaker}</span>
+                        <div className={`p-3.5 rounded-2xl max-w-[85%] md:max-w-md text-xs leading-relaxed shadow-sm border ${
+                          isLeft 
+                            ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200/60 dark:border-slate-800/80 rounded-tl-none bubble-in'
+                            : 'bg-indigo-50/70 dark:bg-indigo-950/30 text-slate-800 dark:text-slate-200 border-indigo-100/50 dark:border-indigo-900/40 rounded-tr-none bubble-out'
+                        }`}>
+                          <p>{turn.speech}</p>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">{t.practicalExpressionsHeader}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {lessonData.practicalEnglish.expressions.map((exp: any, idx: number) => (
+                  <div key={idx} className="p-3.5 bg-teal-55/20 dark:bg-teal-95/5 rounded-xl border border-teal-100/50 dark:border-teal-900/20 text-left font-sans" dir="ltr">
+                    <strong className="text-slate-900 dark:text-slate-200 text-xs font-bold">{exp.expression}</strong>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{exp.use}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== TAB: WRITING CHALLENGE ===== */}
+        {activeTab === 'challenge' && (
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <PenTool className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <span>{t.challengeTitle}</span>
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{t.challengeDesc}</p>
+
+            <div className="space-y-4">
+              {lessonData.writingChallenge.questions.map((q: string, idx: number) => (
+                <div key={idx} className="space-y-2">
+                  <label className="block font-semibold text-slate-700 dark:text-slate-400 text-xs text-left font-sans" dir="ltr">{idx + 1}. {q}</label>
+                  <textarea value={writingAnswers[idx] || ''} onChange={(e) => setWritingAnswers(prev => ({ ...prev, [idx]: e.target.value }))} rows={3} className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-xs font-sans resize-none text-slate-800 dark:text-slate-200" dir="ltr" placeholder="Write your complete response here..." />
+                </div>
+              ))}
+            </div>
+
+            <button onClick={submitWritingAnswers} disabled={writingCorrecting} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer disabled:opacity-50">
+              {writingCorrecting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /><span>{t.writingCorrecting}</span></>
+              ) : (
+                <><PenTool className="w-4 h-4" /><span>{t.challengeSubmit}</span></>
+              )}
+            </button>
+
+            {/* AI Writing Correction Results */}
+            {writingCorrectionData && (
+              <div className="space-y-4 animate-fadeIn">
+                {/* Overall Banner */}
+                <div className="p-5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-200 dark:border-indigo-900/40 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      {t.writingCorrectionTitle}
+                    </h4>
+                    <div className="bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-sm font-black">
+                      {writingCorrectionData.overallScore}/{writingCorrectionData.maxScore}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{writingCorrectionData.overallComment}</p>
+                </div>
+
+                {/* Per-question corrections */}
+                {writingCorrectionData.corrections?.map((correction: any, idx: number) => (
+                  <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {t.tabChallenge.split('.')[0]}. {(correction.questionIndex ?? idx) + 1}
+                      </span>
+                      <span className="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 text-xs font-black px-2.5 py-0.5 rounded-full">
+                        {correction.score}/10
+                      </span>
+                    </div>
+
+                    {correction.grammarFeedback && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">{t.writingGrammarFeedback}</div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">{correction.grammarFeedback}</p>
+                      </div>
+                    )}
+
+                    {correction.vocabularyFeedback && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{t.writingVocabFeedback}</div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">{correction.vocabularyFeedback}</p>
+                      </div>
+                    )}
+
+                    {correction.correctedVersion && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">{t.writingCorrected}</div>
+                        <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-emerald-50 dark:bg-emerald-950/10 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/30 font-sans italic" dir="ltr">{correction.correctedVersion}</p>
+                      </div>
+                    )}
+
+                    {correction.tip && (
+                      <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/10 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed"><strong>{t.writingTip}:</strong> {correction.tip}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
   // Return spinner before mounting to avoid hydration mismatch
   if (!mounted) {
     return (
@@ -559,82 +1137,8 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-grow max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        {/* Sidebar - Level Selection */}
-        <aside className="lg:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800/80 space-y-4 transition-colors duration-300">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <span>{t.sidebarTitle}</span>
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.sidebarDesc}</p>
-
-            <div className="space-y-2">
-              {LEVELS.map((lvl) => {
-                const isActive = selectedLevel?.code === lvl.code;
-                return (
-                  <button key={lvl.code} onClick={() => setSelectedLevel(lvl)} className={`w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer ${isActive ? "bg-gradient-to-r from-indigo-50/70 to-indigo-100/30 dark:from-indigo-950/40 dark:to-indigo-950/20 border-indigo-500 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold ltr:border-l-4 rtl:border-r-4 shadow-sm" : "bg-white dark:bg-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300"}`}>
-                    <span>{lvl.label} ({lvl.code})</span>
-                    <span className="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-sans font-semibold">
-                      {t[lvl.subKey as keyof typeof t]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 mt-4">
-              <button disabled={!selectedLevel || loading} onClick={generateLesson} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                <span>{t.generateBtn}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Global Audio Reader Box */}
-          <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
-            <div className="flex items-center gap-2 text-amber-400">
-              <Volume2 className="w-4 h-4 animate-pulse" />
-              <h3 className="font-bold text-xs">{t.ttsTitle}</h3>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">{t.ttsDesc}</p>
-            <textarea value={ttsText} onChange={(e) => setTtsText(e.target.value)} rows={2} className="w-full p-2.5 text-xs bg-slate-800 border border-slate-700 text-slate-100 rounded-xl focus:outline-none focus:border-amber-400 font-sans resize-none" dir="ltr" placeholder={t.ttsPlaceholder} />
-            <button disabled={ttsLoading} onClick={() => speakText(ttsText)} className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-amber-600 text-slate-950 font-black py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex justify-center items-center gap-2">
-              {ttsLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-              <span>{t.ttsTrigger}</span>
-            </button>
-            {ttsLoading && (
-              <div className="flex items-center justify-center gap-2 py-1.5 text-[10px] text-amber-400 bg-slate-800 rounded-lg">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                <span>{t.ttsLoading}</span>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Right Side: Content Area */}
-        <section className="lg:col-span-3 space-y-6">
-          
-          {/* Empty State */}
-          {!lessonData && !loading && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-6 shadow-sm transition-colors duration-300">
-              <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <BookOpen className="w-10 h-10" />
-              </div>
-              <div className="max-w-md mx-auto space-y-2">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.welcomeTitle}</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.welcomeDesc}</p>
-              </div>
-              <div className="flex justify-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-400 pt-2">
-                <div className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> {t.welcomeFeature1}</div>
-                <div className="flex items-center gap-1.5"><Volume2 className="w-4 h-4 text-sky-500" /> {t.welcomeFeature2}</div>
-                <div className="flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-amber-500" /> {t.welcomeFeature3}</div>
-              </div>
-            </div>
-          )}
-
-          {/* Loading State */}
+      {isMobile ? (
+        <main className="flex-grow w-full max-w-md mx-auto px-4 py-6 space-y-6">
           {loading && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-6 shadow-sm">
               <div className="relative w-20 h-20 mx-auto">
@@ -645,30 +1149,122 @@ export default function Dashboard() {
                 <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t.loadingTitle}</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed animate-pulse">{t.loadingDesc}</p>
               </div>
-              <div className="space-y-3 max-w-lg mx-auto pt-6">
-                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-3/4 mx-auto"></div>
-                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-1/2 mx-auto"></div>
-                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-5/6 mx-auto"></div>
-              </div>
             </div>
           )}
+          {!loading && !lessonData && renderMobileRoadmap()}
+          {!loading && lessonData && renderMobileWizard()}
+        </main>
+      ) : (
+        <main className="flex-grow max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {/* Sidebar - Level Selection */}
+          <aside className="lg:col-span-1 space-y-6">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800/80 space-y-4 transition-colors duration-300">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <span>{t.sidebarTitle}</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.sidebarDesc}</p>
 
-          {/* Lesson Content */}
-          {lessonData && !loading && (
-            <div className="space-y-6">
-              {/* Banner */}
-              <div className={`bg-gradient-to-l ${bannerGradient} text-white p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden border border-slate-100/5`}>
-                <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="relative z-10 space-y-2.5">
-                  <span className="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-[9px] tracking-wider uppercase shadow-sm">
-                    English File {lessonData.levelCode}
-                  </span>
-                  <h2 className="text-xl md:text-2xl font-bold text-amber-400 leading-tight" dir="ltr">
-                    {lessonData.lessonTitle}
-                  </h2>
-                  <p className="text-slate-200 dark:text-slate-400 text-[11px] max-w-xl leading-relaxed">{t.lessonBannerDesc}</p>
+              <div className="space-y-2">
+                {LEVELS.map((lvl) => {
+                  const isActive = selectedLevel?.code === lvl.code;
+                  return (
+                    <button key={lvl.code} onClick={() => setSelectedLevel(lvl)} className={`w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer ${isActive ? "bg-gradient-to-r from-indigo-50/70 to-indigo-100/30 dark:from-indigo-950/40 dark:to-indigo-950/20 border-indigo-500 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold ltr:border-l-4 rtl:border-r-4 shadow-sm" : "bg-white dark:bg-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300"}`}>
+                      <span>{lvl.label} ({lvl.code})</span>
+                      <span className="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-sans font-semibold">
+                        {t[lvl.subKey as keyof typeof t]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 mt-4">
+                <button disabled={!selectedLevel || loading} onClick={generateLesson} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  <span>{t.generateBtn}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Global Audio Reader Box */}
+            <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
+              <div className="flex items-center gap-2 text-amber-400">
+                <Volume2 className="w-4 h-4 animate-pulse" />
+                <h3 className="font-bold text-xs">{t.ttsTitle}</h3>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">{t.ttsDesc}</p>
+              <textarea value={ttsText} onChange={(e) => setTtsText(e.target.value)} rows={2} className="w-full p-2.5 text-xs bg-slate-800 border border-slate-700 text-slate-100 rounded-xl focus:outline-none focus:border-amber-400 font-sans resize-none" dir="ltr" placeholder={t.ttsPlaceholder} />
+              <button disabled={ttsLoading} onClick={() => speakText(ttsText)} className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-amber-600 text-slate-950 font-black py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex justify-center items-center gap-2">
+                {ttsLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                <span>{t.ttsTrigger}</span>
+              </button>
+              {ttsLoading && (
+                <div className="flex items-center justify-center gap-2 py-1.5 text-[10px] text-amber-400 bg-slate-800 rounded-lg">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>{t.ttsLoading}</span>
+                </div>
+              )}
+            </div>
+          </aside>
+
+          {/* Right Side: Content Area */}
+          <section className="lg:col-span-3 space-y-6">
+            
+            {/* Empty State */}
+            {!lessonData && !loading && (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-6 shadow-sm transition-colors duration-300">
+                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <BookOpen className="w-10 h-10" />
+                </div>
+                <div className="max-w-md mx-auto space-y-2">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.welcomeTitle}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.welcomeDesc}</p>
+                </div>
+                <div className="flex justify-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-400 pt-2">
+                  <div className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> {t.welcomeFeature1}</div>
+                  <div className="flex items-center gap-1.5"><Volume2 className="w-4 h-4 text-sky-500" /> {t.welcomeFeature2}</div>
+                  <div className="flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-amber-500" /> {t.welcomeFeature3}</div>
                 </div>
               </div>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-6 shadow-sm">
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="absolute inset-0 rounded-full border-4 border-indigo-100 dark:border-slate-800"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-indigo-600 dark:border-indigo-400 border-t-transparent animate-spin"></div>
+                </div>
+                <div className="max-w-md mx-auto space-y-3">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t.loadingTitle}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed animate-pulse">{t.loadingDesc}</p>
+                </div>
+                <div className="space-y-3 max-w-lg mx-auto pt-6">
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-3/4 mx-auto"></div>
+                  <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-1/2 mx-auto"></div>
+                  <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full animate-shimmer w-5/6 mx-auto"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Lesson Content */}
+            {lessonData && !loading && (
+              <div className="space-y-6">
+                {/* Banner */}
+                <div className={`bg-gradient-to-l ${bannerGradient} text-white p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden border border-slate-100/5`}>
+                  <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                  <div className="relative z-10 space-y-2.5">
+                    <span className="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-[9px] tracking-wider uppercase shadow-sm">
+                      English File {lessonData.levelCode}
+                    </span>
+                    <h2 className="text-xl md:text-2xl font-bold text-amber-400 leading-tight" dir="ltr">
+                      {lessonData.lessonTitle}
+                    </h2>
+                    <p className="text-slate-200 dark:text-slate-400 text-[11px] max-w-xl leading-relaxed">{t.lessonBannerDesc}</p>
+                  </div>
+                </div>
 
                 {/* Tabs Navigation */}
                 <div className="flex overflow-x-auto bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md p-1 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 scrollbar-none gap-1 shadow-inner">
@@ -690,336 +1286,26 @@ export default function Dashboard() {
                   })}
                 </div>
 
-              {/* ===== TAB: VOCABULARY ===== */}
-              {activeTab === 'vocab' && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      <span>{t.vocabTitle}</span>
-                    </h3>
-                    <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">{lessonData.vocabulary.theme}</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {lessonData.vocabulary.words.map((w: any, idx: number) => (
-                      <div key={idx} className="p-5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-sm hover:scale-[1.01] transition-all flex flex-col justify-between gap-4">
-                        <div className="space-y-2 text-left" dir="ltr">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-0.5">
-                              <span className="font-sans font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{w.word}</span>
-                              <p className="text-[10px] text-slate-400 font-sans">{w.phonetics}</p>
-                            </div>
-                            <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full font-tajawal rtl:text-right" dir={t.dir}>
-                              {w.arabicTranslation}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 font-sans leading-relaxed pt-1.5 border-t border-slate-200/30 dark:border-slate-850/30">{w.definition}</p>
-                          <p className="text-xs italic text-indigo-600/90 dark:text-indigo-400/90 font-sans">&quot;{w.exampleSentence}&quot;</p>
-                        </div>
-                        <div className="flex justify-end pt-1">
-                          <button onClick={() => speakText(`${w.word}. ${w.exampleSentence}`)} className="text-[10px] font-bold bg-white hover:bg-indigo-50 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-300 dark:hover:border-indigo-900 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 cursor-pointer transition-all shadow-sm">
-                            <Volume2 className="w-3.5 h-3.5 text-indigo-500" />{t.listeningBtn}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Matching Game */}
-                  <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                      <h4 className="text-xs font-black uppercase text-indigo-900 dark:text-indigo-300 tracking-wider">{t.matchingTitle}</h4>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.matchingDesc}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        {lessonData.vocabulary.matchingChallenge.map((item: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-300 text-left hover:scale-[1.01] transition-transform" dir="ltr">{idx + 1}. {item.term}</div>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        {lessonData.vocabulary.matchingChallenge.map((_: any, idx: number) => (
-                          <select key={idx} value={vocabMatches[idx] !== undefined ? vocabMatches[idx] : ''} onChange={(e) => setVocabMatches(prev => ({ ...prev, [idx]: e.target.value === '' ? -1 : parseInt(e.target.value, 10) }))} className="w-full p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 focus:outline-none focus:border-indigo-500 font-sans cursor-pointer shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors" dir="ltr">
-                            <option value="">{t.matchingSelectDefault.replace('...', `#${idx + 1}`)}</option>
-                            {shuffledDefs.map((def) => (<option key={def.id} value={def.id}>{def.text}</option>))}
-                          </select>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
-                      <button onClick={checkVocabMatching} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.matchingCheck}</button>
-                      {vocabFeedback && (
-                        <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${vocabFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
-                          {vocabFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
-                          <span>{vocabFeedback.text}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ===== TAB: GRAMMAR ===== */}
-              {activeTab === 'grammar' && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Layers className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                      <span>{t.grammarTitle}</span>
-                    </h3>
-                  </div>
-                  <div className="p-5 bg-gradient-to-r from-slate-50 to-indigo-50/20 dark:from-slate-800/40 dark:to-slate-800/20 rounded-2xl border-l-4 border-amber-500 shadow-sm space-y-2 text-left" dir="ltr">
-                    <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{lessonData.grammar.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans" dir="ltr">{lessonData.grammar.conceptExplanation}</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {lessonData.grammar.rules.map((rule: any, idx: number) => (
-                      <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 text-left shadow-sm flex flex-col justify-between" dir="ltr">
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800/80 pb-2 font-sans">{rule.rule}</h4>
-                        </div>
-                        <div className="p-3 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-200/20 dark:border-amber-900/30 text-xs text-amber-800 dark:text-amber-300 font-mono tracking-tight">{rule.example}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Grammar Quiz */}
-                  <div className="p-6 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 space-y-4 mt-6">
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      <h4 className="text-xs font-black uppercase text-amber-900 dark:text-amber-300 tracking-wider">{t.grammarQuizTitle}</h4>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{t.grammarQuizDesc}</p>
-                    <div className="space-y-4">
-                      {lessonData.grammar.quickQuiz.map((quiz: any, quizIdx: number) => (
-                        <div key={quizIdx} className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/85 dark:border-slate-800/85 shadow-sm space-y-3">
-                          <p className="font-extrabold text-slate-900 dark:text-slate-100 text-xs text-left font-sans" dir="ltr">{quizIdx + 1}. {quiz.question}</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5" dir="ltr">
-                            {quiz.options.map((opt: string, optIdx: number) => {
-                              const isSelected = quizAnswers[quizIdx] === optIdx;
-                              return (
-                                <button
-                                  key={optIdx}
-                                  type="button"
-                                  onClick={() => setQuizAnswers(prev => ({ ...prev, [quizIdx]: optIdx }))}
-                                  className={`p-3 rounded-xl border text-xs font-bold text-center transition-all duration-200 hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none ${
-                                    isSelected
-                                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
-                                      : 'bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-                                  }`}
-                                >
-                                  {opt}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-100 dark:border-slate-850 mt-4">
-                      <button onClick={checkGrammarQuiz} className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer">{t.grammarQuizCheck}</button>
-                      {quizFeedback && (
-                        <div className={`text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-xl ${quizFeedback.isError ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'}`}>
-                          {quizFeedback.isError ? <AlertCircle className="w-4.5 h-4.5" /> : <Check className="w-4.5 h-4.5" />}
-                          <span>{quizFeedback.text}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ===== TAB: PRONUNCIATION ===== */}
-              {activeTab === 'pron' && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Volume2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                      <span>{t.pronTitle}</span>
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {lessonData.pronunciation.soundsToCompare.map((soundDesc: string, idx: number) => (
-                      <div key={idx} className="p-5 bg-sky-50/30 dark:bg-sky-950/10 rounded-2xl border border-sky-100 dark:border-sky-900/30 space-y-3 text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed font-semibold" dir="ltr">{soundDesc}</p>
-                        <button onClick={() => speakText(soundDesc)} className="mt-2 text-xs bg-white dark:bg-slate-800 border border-sky-200 dark:border-slate-700 px-4 py-2 rounded-full mx-auto flex items-center gap-1.5 hover:bg-sky-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer shadow-sm">
-                          <Volume2 className="w-3.5 h-3.5 text-sky-600" />{t.pronListenBtn}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">{t.pronGuideTitle}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{t.pronGuideDesc}</p>
-                    <div className="flex flex-wrap gap-2.5 pt-1">
-                      {lessonData.pronunciation.wordsWithAudio.map((word: string, idx: number) => (
-                        <button key={idx} onClick={() => speakText(word)} className="bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-700 border border-slate-200 dark:border-slate-800 text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm text-slate-700 dark:text-slate-400 font-bold cursor-pointer" dir="ltr">
-                          <span>{word}</span>
-                          <Play className="w-3 h-3 text-slate-400 fill-current" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ===== TAB: PRACTICAL ENGLISH ===== */}
-              {activeTab === 'dialogue' && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <MessageSquare className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                      <span>{t.practicalTitle}</span>
-                    </h3>
-                    <button onClick={playFullDialogue} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm">
-                      <Play className="w-3.5 h-3.5 fill-current" />{t.practicalPlayFull}
-                    </button>
-                  </div>
-                  <div className="p-4 bg-teal-50/30 dark:bg-teal-950/10 rounded-2xl border border-teal-100/80 dark:border-teal-900/30">
-                    <h4 className="text-[10px] font-bold text-teal-800 dark:text-teal-400 uppercase tracking-widest">{t.practicalScenarioTitle}</h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1 font-sans" dir="ltr">{lessonData.practicalEnglish.scenario}</p>
-                  </div>
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950/20 shadow-inner">
-                    <div className="bg-slate-900 text-white px-4 py-3.5 text-xs font-bold uppercase tracking-wider flex justify-between items-center border-b border-slate-850">
-                      <span>{t.practicalDialogueHeader}</span>
-                      <span className="text-[10px] text-slate-400 font-medium normal-case">Immersive Chat View</span>
-                    </div>
-                    <div className="p-4 md:p-6 space-y-4 max-h-[400px] overflow-y-auto bg-slate-100/30 dark:bg-slate-950/40 scrollbar-none">
-                      {(() => {
-                        const dialogue = lessonData.practicalEnglish.dialogue;
-                        const speakerNames = Array.from(new Set(dialogue.map((d: any) => d.speaker)));
-                        const speakerLeft = speakerNames[0] || '';
-                        return dialogue.map((turn: any, idx: number) => {
-                          const isLeft = turn.speaker === speakerLeft;
-                          return (
-                            <div key={idx} className={`flex flex-col ${isLeft ? 'items-start' : 'items-end'} w-full space-y-1 animate-fadeIn`}>
-                              <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 px-1">{turn.speaker}</span>
-                              <div className={`p-3.5 rounded-2xl max-w-[85%] md:max-w-md text-xs leading-relaxed shadow-sm border ${
-                                isLeft 
-                                  ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200/60 dark:border-slate-800/80 rounded-tl-none bubble-in'
-                                  : 'bg-indigo-50/70 dark:bg-indigo-950/30 text-slate-800 dark:text-slate-200 border-indigo-100/50 dark:border-indigo-900/40 rounded-tr-none bubble-out'
-                              }`}>
-                                <p>{turn.speech}</p>
-                              </div>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">{t.practicalExpressionsHeader}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      {lessonData.practicalEnglish.expressions.map((exp: any, idx: number) => (
-                        <div key={idx} className="p-3.5 bg-teal-50/20 dark:bg-teal-950/5 rounded-xl border border-teal-100/50 dark:border-teal-900/20 text-left font-sans" dir="ltr">
-                          <strong className="text-slate-900 dark:text-slate-200 text-xs font-bold">{exp.expression}</strong>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{exp.use}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ===== TAB: WRITING CHALLENGE (with AI Correction) ===== */}
-              {activeTab === 'challenge' && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <PenTool className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                      <span>{t.challengeTitle}</span>
-                    </h3>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{t.challengeDesc}</p>
-
-                  <div className="space-y-4">
-                    {lessonData.writingChallenge.questions.map((q: string, idx: number) => (
-                      <div key={idx} className="space-y-2">
-                        <label className="block font-semibold text-slate-700 dark:text-slate-400 text-xs text-left font-sans" dir="ltr">{idx + 1}. {q}</label>
-                        <textarea value={writingAnswers[idx] || ''} onChange={(e) => setWritingAnswers(prev => ({ ...prev, [idx]: e.target.value }))} rows={3} className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-xs font-sans resize-none text-slate-800 dark:text-slate-200" dir="ltr" placeholder="Write your complete response here..." />
-                      </div>
-                    ))}
-                  </div>
-
-                  <button onClick={submitWritingAnswers} disabled={writingCorrecting} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2 text-xs cursor-pointer disabled:opacity-50">
-                    {writingCorrecting ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /><span>{t.writingCorrecting}</span></>
-                    ) : (
-                      <><PenTool className="w-4 h-4" /><span>{t.challengeSubmit}</span></>
-                    )}
-                  </button>
-
-                  {/* AI Writing Correction Results */}
-                  {writingCorrectionData && (
-                    <div className="space-y-4 animate-fadeIn">
-                      {/* Overall Banner */}
-                      <div className="p-5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-200 dark:border-indigo-900/40 rounded-2xl space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-indigo-600" />
-                            {t.writingCorrectionTitle}
-                          </h4>
-                          <div className="bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-sm font-black">
-                            {writingCorrectionData.overallScore}/{writingCorrectionData.maxScore}
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{writingCorrectionData.overallComment}</p>
-                      </div>
-
-                      {/* Per-question corrections */}
-                      {writingCorrectionData.corrections?.map((correction: any, idx: number) => (
-                        <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                              {t.tabChallenge.split('.')[0]}. {(correction.questionIndex ?? idx) + 1}
-                            </span>
-                            <span className="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 text-xs font-black px-2.5 py-0.5 rounded-full">
-                              {correction.score}/10
-                            </span>
-                          </div>
-
-                          {correction.grammarFeedback && (
-                            <div className="space-y-1">
-                              <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">{t.writingGrammarFeedback}</div>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">{correction.grammarFeedback}</p>
-                            </div>
-                          )}
-
-                          {correction.vocabularyFeedback && (
-                            <div className="space-y-1">
-                              <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{t.writingVocabFeedback}</div>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">{correction.vocabularyFeedback}</p>
-                            </div>
-                          )}
-
-                          {correction.correctedVersion && (
-                            <div className="space-y-1">
-                              <div className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">{t.writingCorrected}</div>
-                              <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-emerald-50 dark:bg-emerald-950/10 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/30 font-sans italic" dir="ltr">{correction.correctedVersion}</p>
-                            </div>
-                          )}
-
-                          {correction.tip && (
-                            <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/10 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                              <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                              <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed"><strong>{t.writingTip}:</strong> {correction.tip}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
-          )}
-        </section>
-      </main>
+                {renderActiveTabContent()}
+              </div>
+            )}
+          </section>
+        </main>
+      )}
 
       {/* Footer */}
       <footer className="bg-slate-950 text-slate-400 text-center py-8 border-t border-slate-900 mt-12">
-        <p className="text-xs" dir="ltr">Made with <span className="text-rose-500">❤</span> in <span className="text-amber-400 font-bold">SANAI+</span></p>
+        <p className="text-xs" dir={lang === 'AR' ? 'rtl' : 'ltr'}>
+          {lang === 'AR' ? (
+            <>
+              صُنع بـ <span className="text-rose-500">❤</span> في <span className="text-amber-400 font-bold" dir="ltr">SANAI+</span>
+            </>
+          ) : (
+            <>
+              Made with <span className="text-rose-500">❤</span> in <span className="text-amber-400 font-bold" dir="ltr">SANAI+</span>
+            </>
+          )}
+        </p>
       </footer>
 
       {/* ===== MODALS ===== */}
