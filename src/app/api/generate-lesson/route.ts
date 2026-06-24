@@ -158,37 +158,60 @@ Produce a highly complete, detailed and engaging lesson that includes exactly:
       }
     };
 
-    // Call the Gemini API with backoff mechanism
-    const modelName = "gemini-2.5-flash";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    // Call the Gemini API with a dual-model fallback and backoff mechanism
+    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash"];
+    let response: Response | null = null;
+    let success = false;
+    let lastErrorDetails = 'No request made';
+    let lastStatus = 500;
 
-    let response;
-    let retries = 3;
-    let delay = 1000;
+    for (const model of modelsToTry) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      let retries = 2; // 2 attempts per model (initial + 1 retry)
+      let delay = 1000;
 
-    while (retries > 0) {
-      try {
-        response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (response.ok) break;
-      } catch (err) {
-        // network or other error
+      while (retries > 0) {
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (response.ok) {
+            success = true;
+            break;
+          } else {
+            lastStatus = response.status;
+            lastErrorDetails = await response.text();
+            
+            // If it's a validation error (400) or authorization error (401, 403), retrying won't help.
+            if (response.status === 400 || response.status === 401 || response.status === 403) {
+              retries = 0; // prevent further retries
+              break;
+            }
+          }
+        } catch (err: any) {
+          lastStatus = 500;
+          lastErrorDetails = err.message || 'Network error';
+        }
+
+        retries--;
+        if (retries > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2;
+        }
       }
-      retries--;
-      if (retries > 0) {
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        delay *= 2;
+
+      if (success && response && response.ok) {
+        break; // break the model loop
       }
     }
 
-    if (!response || !response.ok) {
-      const errorText = response ? await response.text() : 'Network error';
+    if (!success || !response || !response.ok) {
       return NextResponse.json(
-        { error: `Gemini API returned error: ${response?.status || 'Unknown'}. Details: ${errorText}` },
-        { status: response?.status || 500 }
+        { error: `Gemini API returned error: ${lastStatus}. Details: ${lastErrorDetails}` },
+        { status: lastStatus }
       );
     }
 
