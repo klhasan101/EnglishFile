@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Tajawal, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import PWARegistration from "@/components/PWARegistration";
 
-const cairo = Cairo({
+const tajawal = Tajawal({
   subsets: ["arabic"],
-  variable: "--font-cairo",
-  weight: ["300", "400", "600", "700", "800"],
+  variable: "--font-tajawal",
+  weight: ["300", "400", "500", "700", "800"],
 });
 
 const playfair = Playfair_Display({
@@ -47,7 +47,7 @@ export default function RootLayout({
   return (
     <html
       lang="ar"
-      className={`${cairo.variable} ${playfair.variable} ${plusJakarta.variable} h-full antialiased`}
+      className={`${tajawal.variable} ${playfair.variable} ${plusJakarta.variable} h-full antialiased`}
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />

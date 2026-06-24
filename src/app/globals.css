@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-cairo: var(--font-cairo), "Cairo", sans-serif;
+  --font-tajawal: var(--font-tajawal), "Tajawal", sans-serif;
   --font-playfair: var(--font-playfair), "Playfair Display", serif;
   --font-plus-jakarta: var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif;
 }

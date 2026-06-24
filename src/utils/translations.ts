@@ -3,7 +3,7 @@ export type Language = 'AR' | 'EN';
 export const translations = {
   AR: {
     dir: 'rtl',
-    fontClass: 'font-cairo',
+    fontClass: 'font-tajawal',
     title: 'منصة English File التفاعلية الذكية',
     subtitle: 'منصة التوليد التفاعلية الذكية',
     engineStatus: 'محرك Gemini الذكي نشط',
