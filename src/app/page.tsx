@@ -198,7 +198,24 @@ export default function Dashboard() {
     }
   };
 
-  // Speak sentence using backend Gemini TTS API
+  // Fallback: use browser's built-in Web Speech API
+  const speakWithBrowser = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // stop any ongoing speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = accent === 'US' ? 'en-US' : 'en-GB';
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      // Try to find a matching voice
+      const voices = window.speechSynthesis.getVoices();
+      const targetLang = accent === 'US' ? 'en-US' : 'en-GB';
+      const matchedVoice = voices.find(v => v.lang === targetLang) || voices.find(v => v.lang.startsWith('en'));
+      if (matchedVoice) utterance.voice = matchedVoice;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Speak sentence using backend Gemini TTS API, with browser fallback on rate limit
   const speakText = async (text: string) => {
     if (!text.trim()) return;
     setTtsLoading(true);
@@ -209,16 +226,29 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body: JSON.stringify({ sentence: text, accent }),
       });
+
       if (!response.ok) {
         const err = await response.json();
+        // On rate limit, fall back to browser speech synthesis silently
+        if (response.status === 429 || err.rateLimited) {
+          console.warn('Gemini TTS rate limited, falling back to browser speech synthesis');
+          speakWithBrowser(text);
+          return;
+        }
         throw new Error(err.error || 'TTS generation failed');
       }
+
       const data = await response.json();
       const sampleRate = parseInt(data.mimeType?.match(/rate=(\d+)/)?.[1] || "24000", 10);
       playPCMBase64(data.base64Audio, sampleRate);
     } catch (err: any) {
       console.error(err);
-      alert(t.ttsAlertError);
+      // Final fallback: try browser speech before showing an error
+      try {
+        speakWithBrowser(text);
+      } catch {
+        alert(t.ttsAlertError);
+      }
     } finally {
       setTtsLoading(false);
     }

@@ -64,9 +64,19 @@ export async function POST(request: Request) {
 
     if (!response || !response.ok) {
       const errorText = response ? await response.text() : 'Network error';
+      const status = response?.status || 500;
+      
+      // On 429 rate limit, return a special flag so the client can fall back to browser TTS
+      if (status === 429) {
+        return NextResponse.json(
+          { error: 'Rate limit exceeded', rateLimited: true },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
-        { error: `Gemini TTS API returned error: ${response?.status || 'Unknown'}. Details: ${errorText}` },
-        { status: response?.status || 500 }
+        { error: `Gemini TTS API returned error: ${status}. Details: ${errorText}` },
+        { status }
       );
     }
 
