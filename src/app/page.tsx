@@ -494,10 +494,6 @@ export default function Dashboard() {
             <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-xl text-xs tracking-wider uppercase shadow-md select-none">
               ENGLISH FILE
             </span>
-            <div className="hidden sm:block">
-              <h1 className="text-base font-bold tracking-tight">{t.title}</h1>
-              <p className="text-[10px] text-slate-400">{t.subtitle}</p>
-            </div>
           </div>
           
           <div className="flex items-center gap-2">
