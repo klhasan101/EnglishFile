@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  let apiKey: string | null = null;
   try {
     const { questions, answers, levelCode, levelLabel } = await request.json();
 
     const clientApiKey = request.headers.get('x-api-key');
-    const apiKey = process.env.GEMINI_API_KEY || clientApiKey;
+    apiKey = process.env.GEMINI_API_KEY || clientApiKey;
 
     if (!apiKey) {
       return NextResponse.json(
@@ -120,7 +121,7 @@ Be encouraging but honest. Point out specific mistakes and explain why they're w
 
     if (!success || !response || !response.ok) {
       return NextResponse.json(
-        { error: `Gemini API returned error: ${lastStatus}. Details: ${lastErrorDetails}` },
+        { error: sanitizeError(`Gemini API returned error: ${lastStatus}. Details: ${lastErrorDetails}`, apiKey) },
         { status: lastStatus }
       );
     }
@@ -140,8 +141,19 @@ Be encouraging but honest. Point out specific mistakes and explain why they're w
   } catch (error: any) {
     console.error('Error correcting writing:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
+      { error: sanitizeError(error.message || 'Internal Server Error', apiKey) },
       { status: 500 }
     );
   }
+}
+
+function sanitizeError(msg: string, key?: string | null): string {
+  if (!msg) return '';
+  let sanitized = msg;
+  if (key) {
+    const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    sanitized = sanitized.replace(new RegExp(escapedKey, 'g'), '***REDACTED***');
+  }
+  sanitized = sanitized.replace(/AIzaSy[A-Za-z0-9_-]{33}/g, '***REDACTED***');
+  return sanitized;
 }
