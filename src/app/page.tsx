@@ -1019,7 +1019,7 @@ export default function Dashboard() {
 
       {/* Footer */}
       <footer className="bg-slate-950 text-slate-400 text-center py-8 border-t border-slate-900 mt-12">
-        <p className="text-xs">Made with <span className="text-rose-500">❤</span> in <span className="text-amber-400 font-bold">SANAI+</span></p>
+        <p className="text-xs" dir="ltr">Made with <span className="text-rose-500">❤</span> in <span className="text-amber-400 font-bold">SANAI+</span></p>
       </footer>
 
       {/* ===== MODALS ===== */}
