@@ -53,6 +53,7 @@ export default function Dashboard() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [accent, setAccent] = useState<'UK' | 'US'>('UK');
   const [apiKey, setApiKey] = useState<string>('');
+  const [geminiModel, setGeminiModel] = useState<string>('gemini-2.5-flash');
   
   // Selection & UI states
   const [selectedLevel, setSelectedLevel] = useState<typeof LEVELS[0] | null>(null);
@@ -103,6 +104,9 @@ export default function Dashboard() {
 
     const savedKey = localStorage.getItem('ef_apiKey');
     if (savedKey) setApiKey(savedKey);
+
+    const savedModel = localStorage.getItem('ef_geminiModel');
+    if (savedModel) setGeminiModel(savedModel);
   }, []);
 
   // Sync theme with DOM classes
@@ -137,16 +141,18 @@ export default function Dashboard() {
     }
   }, [theme, mounted]);
 
-  const saveSettingsHandler = (newLang: Language, newTheme: 'light' | 'dark' | 'system', newAccent: 'UK' | 'US', newKey: string) => {
+  const saveSettingsHandler = (newLang: Language, newTheme: 'light' | 'dark' | 'system', newAccent: 'UK' | 'US', newKey: string, newModel: string) => {
     setLang(newLang);
     setTheme(newTheme);
     setAccent(newAccent);
     setApiKey(newKey);
+    setGeminiModel(newModel);
 
     localStorage.setItem('ef_lang', newLang);
     localStorage.setItem('ef_theme', newTheme);
     localStorage.setItem('ef_accent', newAccent);
     localStorage.setItem('ef_apiKey', newKey);
+    localStorage.setItem('ef_geminiModel', newModel);
 
     setShowSettings(false);
   };
@@ -265,7 +271,11 @@ export default function Dashboard() {
     try {
       const response = await fetch('/api/generate-lesson', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-api-key': apiKey,
+          'x-gemini-model': geminiModel
+        },
         body: JSON.stringify({
           levelCode: selectedLevel.code,
           levelLabel: selectedLevel.label,
@@ -430,7 +440,11 @@ export default function Dashboard() {
       
       const response = await fetch('/api/correct-writing', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-api-key': apiKey,
+          'x-gemini-model': geminiModel
+        },
         body: JSON.stringify({
           questions,
           answers: answersArray,
@@ -970,7 +984,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-bold flex items-center gap-2"><Settings className="w-5 h-5" />{t.settingsTitle}</h3>
               <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
             </div>
-            <SettingsForm initialLang={lang} initialTheme={theme} initialAccent={accent} initialApiKey={apiKey} t={t} onSave={saveSettingsHandler} onClose={() => setShowSettings(false)} />
+            <SettingsForm initialLang={lang} initialTheme={theme} initialAccent={accent} initialApiKey={apiKey} initialModel={geminiModel} t={t} onSave={saveSettingsHandler} onClose={() => setShowSettings(false)} />
           </div>
         </div>
       )}
@@ -985,14 +999,15 @@ export default function Dashboard() {
 }
 
 // ===== Settings Form Sub-Component =====
-function SettingsForm({ initialLang, initialTheme, initialAccent, initialApiKey, t, onSave, onClose }: {
-  initialLang: Language; initialTheme: 'light' | 'dark' | 'system'; initialAccent: 'UK' | 'US'; initialApiKey: string;
-  t: any; onSave: (lang: Language, theme: 'light' | 'dark' | 'system', accent: 'UK' | 'US', key: string) => void; onClose: () => void;
+function SettingsForm({ initialLang, initialTheme, initialAccent, initialApiKey, initialModel, t, onSave, onClose }: {
+  initialLang: Language; initialTheme: 'light' | 'dark' | 'system'; initialAccent: 'UK' | 'US'; initialApiKey: string; initialModel: string;
+  t: any; onSave: (lang: Language, theme: 'light' | 'dark' | 'system', accent: 'UK' | 'US', key: string, model: string) => void; onClose: () => void;
 }) {
   const [lang, setLang] = useState<Language>(initialLang);
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(initialTheme);
   const [accent, setAccent] = useState<'UK' | 'US'>(initialAccent);
   const [apiKey, setApiKey] = useState<string>(initialApiKey);
+  const [model, setModel] = useState<string>(initialModel);
 
   return (
     <div className="p-6 space-y-5">
@@ -1030,12 +1045,21 @@ function SettingsForm({ initialLang, initialTheme, initialAccent, initialApiKey,
         </div>
       </div>
       <div className="space-y-1.5">
+        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-orange-500" />{t.settingsModel}</label>
+        <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-xs font-semibold cursor-pointer">
+          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Default)</option>
+          <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+        </select>
+        <p className="text-[10px] text-slate-400 leading-normal">{t.settingsModelHelp}</p>
+      </div>
+      <div className="space-y-1.5">
         <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-amber-500" />{t.settingsApiKey}</label>
         <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-900 text-xs font-sans" placeholder="AIzaSy..." />
         <p className="text-[10px] text-slate-400 leading-normal">{t.settingsApiKeyHelp}</p>
       </div>
       <div className="flex gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-        <button type="button" onClick={() => onSave(lang, theme, accent, apiKey)} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">{t.settingsSave}</button>
+        <button type="button" onClick={() => onSave(lang, theme, accent, apiKey, model)} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">{t.settingsSave}</button>
         <button type="button" onClick={onClose} className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs cursor-pointer border border-slate-200/40 dark:border-slate-700/60">{t.settingsClose}</button>
       </div>
     </div>

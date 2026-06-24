@@ -7,6 +7,7 @@ export async function POST(request: Request) {
 
     const clientApiKey = request.headers.get('x-api-key');
     apiKey = process.env.GEMINI_API_KEY || clientApiKey;
+    const requestedModel = request.headers.get('x-gemini-model') || 'gemini-2.5-flash';
 
     if (!apiKey) {
       return NextResponse.json(
@@ -69,8 +70,9 @@ Be encouraging but honest. Point out specific mistakes and explain why they're w
       }
     };
 
-    // Call the Gemini API with a dual-model fallback and backoff mechanism
-    const modelsToTry = ["gemini-2.5-flash", "gemini-1.5-flash"];
+    // Call the Gemini API with a multi-model fallback and backoff mechanism
+    const fallbackList = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+    const modelsToTry = [requestedModel, ...fallbackList.filter(m => m !== requestedModel)];
     let response: Response | null = null;
     let success = false;
     let lastErrorDetails = 'No request made';
