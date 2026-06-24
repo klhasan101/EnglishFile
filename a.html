@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة English File التفاعلية الذكية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .english-content {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .serif-font {
+            font-family: 'Playfair Display', serif;
+        }
+        .animate-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-950 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <span class="bg-amber-500 text-slate-950 font-black px-4 py-1 rounded-lg text-sm tracking-wider uppercase">ENGLISH FILE</span>
+                <h1 class="text-lg font-bold">منصة التوليد التفاعلية الذكية</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Gemini 2.5 Active Engine</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Sidebar - Level Selection -->
+        <aside class="lg:col-span-1 space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+                    <span>اختر مستوى المنهج الدراسي</span>
+                </h2>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    حدد مستوى الإنجليزية المطلوب لتوليد درس ذكي فوري يتناسب مع أهداف هذا المستوى وفقاً لـ English File:
+                </p>
+
+                <!-- Level Select Buttons -->
+                <div class="space-y-2" id="level-list">
+                    <button onclick="selectLevel('A1', 'Beginner')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-A1">
+                        <span>Beginner (A1)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">مبتدئ</span>
+                    </button>
+                    <button onclick="selectLevel('A2', 'Elementary')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-A2">
+                        <span>Elementary (A2)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">ابتدائي</span>
+                    </button>
+                    <button onclick="selectLevel('B1', 'Pre-Intermediate')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-B1">
+                        <span>Pre-Intermediate (B1)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">تحت المتوسط</span>
+                    </button>
+                    <button onclick="selectLevel('B1+', 'Intermediate')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-B1+">
+                        <span>Intermediate (B1+)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">متوسط</span>
+                    </button>
+                    <button onclick="selectLevel('B2.1', 'Intermediate Plus')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-B2.1">
+                        <span>Intermediate Plus (B2.1)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">متوسط مرتفع</span>
+                    </button>
+                    <button onclick="selectLevel('B2.2', 'Upper-Intermediate')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-B2.2">
+                        <span>Upper-Intermediate (B2.2)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">فوق المتوسط</span>
+                    </button>
+                    <button onclick="selectLevel('C1', 'Advanced')" class="w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700" id="btn-C1">
+                        <span>Advanced (C1)</span>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono">متقدم</span>
+                    </button>
+                </div>
+
+                <div class="pt-2 border-t mt-4">
+                    <button id="generate-btn" disabled onclick="generateNewLesson()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>توليد الدرس الذكي</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Global Audio Reader Box -->
+            <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
+                <div class="flex items-center space-x-2 space-x-reverse text-amber-400">
+                    <i class="fa-solid fa-microphone-lines text-sm"></i>
+                    <h3 class="font-bold text-xs">قارئ ومصحح النطق الصوتي</h3>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                    اكتب أي جملة أو كلمة هنا ثم انقر للإنصات إلى النطق النموذجي الصحيح بلكنة بريطانية ممتازة:
+                </p>
+                <textarea id="tts-input" rows="2" class="w-full p-2 text-xs bg-slate-800 border border-slate-700 text-slate-100 rounded focus:outline-none focus:border-amber-400 font-sans" dir="ltr" placeholder="E.g., Practice makes perfect."></textarea>
+                
+                <button onclick="triggerCustomTTS()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2 rounded text-xs transition-colors">
+                    إنطق العبارة الآن
+                </button>
+                <div id="tts-loading" class="hidden items-center justify-center space-x-2 space-x-reverse py-1.5 text-xs text-amber-400 bg-slate-800 rounded">
+                    <i class="fa-solid fa-spinner animate-spin"></i>
+                    <span>جاري توليد الملف الصوتي...</span>
+                </div>
+                <audio id="audio-player" class="hidden"></audio>
+            </div>
+        </aside>
+
+        <!-- Right Side: Content Area / Loading / Empty State -->
+        <section class="lg:col-span-3 space-y-6">
+            
+            <!-- Empty State / Welcome -->
+            <div id="empty-state" class="bg-white rounded-2xl border p-12 text-center space-y-6 shadow-xs">
+                <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <div class="max-w-md mx-auto space-y-2">
+                    <h2 class="text-xl font-bold text-slate-900">مرحباً بك في منصة English File الذكية!</h2>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        اختر أي مستوى ترغب في دراسته من اللوحة الجانبية، ثم انقر على **"توليد الدرس الذكي"**. سيقوم محرك الذكاء الاصطناعي بتوليد درس تفاعلي متكامل مخصص لمهاراتك فوراً!
+                    </p>
+                </div>
+                <div class="flex justify-center gap-4 text-xs font-semibold text-slate-600">
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-spell-check text-emerald-500"></i> قواعد ومفردات</div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-headphones text-sky-500"></i> تدريب نطق ذكي</div>
+                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-amber-500"></i> تحديات تفاعلية</div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden bg-white rounded-2xl border p-12 text-center space-y-6 shadow-xs">
+                <div class="relative w-20 h-20 mx-auto">
+                    <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                </div>
+                <div class="max-w-md mx-auto space-y-3">
+                    <h2 class="text-lg font-bold text-slate-900">جاري الاتصال بـ Gemini AI...</h2>
+                    <p class="text-xs text-slate-500 leading-relaxed animate-pulse">
+                        نقوم الآن ببرمجة وتوليد درس مخصص تفاعلي متوافق مع معايير ومناهج Oxford English File. قد يستغرق هذا بضع ثوانٍ...
+                    </p>
+                </div>
+                <!-- Shimmer skeletons -->
+                <div class="space-y-3 max-w-lg mx-auto pt-4">
+                    <div class="h-4 bg-slate-100 rounded-full animate-shimmer w-3/4 mx-auto"></div>
+                    <div class="h-3 bg-slate-100 rounded-full animate-shimmer w-1/2 mx-auto"></div>
+                    <div class="h-3 bg-slate-100 rounded-full animate-shimmer w-5/6 mx-auto"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Lesson Container (Hidden until loaded) -->
+            <div id="lesson-container" class="hidden space-y-6">
+                
+                <!-- Lesson Banner -->
+                <div class="bg-gradient-to-l from-slate-900 to-indigo-950 text-white p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden">
+                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-2">
+                            <span id="lesson-badge" class="bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded text-[10px] tracking-widest uppercase"></span>
+                            <h2 id="lesson-title" class="text-2xl md:text-3xl font-bold serif-font english-content text-amber-400"></h2>
+                            <p class="text-slate-300 text-xs max-w-xl">
+                                تم تصميم هذا الدرس التفاعلي ليركز على القواعد المستهدفة والمفردات واللفظ الصحيح لهذا المستوى بدقة بالغة.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div class="flex overflow-x-auto bg-white p-1 rounded-xl border border-slate-200/80 scrollbar-none">
+                    <button onclick="switchTab('vocab')" id="tab-vocab" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-indigo-600 bg-indigo-50 flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span>1. المفردات (Vocabulary)</span>
+                    </button>
+                    <button onclick="switchTab('grammar')" id="tab-grammar" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-indigo-600 hover:bg-slate-50 flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-gears"></i>
+                        <span>2. القواعد (Grammar)</span>
+                    </button>
+                    <button onclick="switchTab('pron')" id="tab-pron" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-indigo-600 hover:bg-slate-50 flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span>3. النطق (Pronunciation)</span>
+                    </button>
+                    <button onclick="switchTab('dialogue')" id="tab-dialogue" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-indigo-600 hover:bg-slate-50 flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>4. الإنجليزية العملية (Practical)</span>
+                    </button>
+                    <button onclick="switchTab('challenge')" id="tab-challenge" class="tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-indigo-600 hover:bg-slate-50 flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-pen-fancy"></i>
+                        <span>5. تحدي الكتابة (Challenge)</span>
+                    </button>
+                </div>
+
+                <!-- Tab Content: VOCABULARY -->
+                <div id="content-vocab" class="tab-content bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    <div class="border-b pb-3 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-emerald-600"></i>
+                            <span>1. المفردات والمصطلحات الرئيسية (Vocabulary)</span>
+                        </h3>
+                        <span id="vocab-theme" class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full"></span>
+                    </div>
+
+                    <!-- Dynamic Words list -->
+                    <div class="space-y-4" id="words-list-container"></div>
+
+                    <!-- Matching Game -->
+                    <div class="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-4 mt-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-gamepad text-indigo-600"></i>
+                            <h4 class="text-xs font-black uppercase text-indigo-900 tracking-wider">تحدي المفردات التفاعلي</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">قم بمطابقة كل مصطلح أو جملة بتعريفها اللغوي الصحيح:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="matching-game-area"></div>
+                        
+                        <div class="flex justify-between items-center pt-2">
+                            <button onclick="checkVocabMatching()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors">تحقق من الإجابات</button>
+                            <span id="vocab-matching-feedback" class="text-xs font-bold"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: GRAMMAR -->
+                <div id="content-grammar" class="tab-content hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    <div class="border-b pb-3">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-gears text-amber-600"></i>
+                            <span>2. شرح القواعد واستخداماتها (Grammar Focus)</span>
+                        </h3>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <h4 id="grammar-title" class="font-bold text-slate-800 text-sm"></h4>
+                        <p id="grammar-concept" class="text-xs text-slate-600 leading-relaxed font-sans" dir="ltr"></p>
+                    </div>
+
+                    <!-- Grammatical Rules Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="grammar-rules-container"></div>
+
+                    <!-- Interactive Grammar Quiz -->
+                    <div class="p-5 bg-amber-50/50 rounded-2xl border border-amber-100 space-y-4 mt-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-question text-amber-600"></i>
+                            <h4 class="text-xs font-black uppercase text-amber-900 tracking-wider">اختبر معلوماتك النحوية</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">اختر الإجابة الصحيحة لكل من الأسئلة التالية لتتحقق من فهمك للقاعدة:</p>
+                        
+                        <div class="space-y-4" id="grammar-quiz-area"></div>
+                        
+                        <div class="flex justify-between items-center pt-2">
+                            <button onclick="checkGrammarQuiz()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors">تحقق من إجابات الاختبار</button>
+                            <span id="grammar-quiz-feedback" class="text-xs font-bold"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: PRONUNCIATION -->
+                <div id="content-pron" class="tab-content hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    <div class="border-b pb-3">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high text-sky-600"></i>
+                            <span>3. تدريب النطق ومخارج الحروف (Pronunciation)</span>
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="pronunciation-sounds-container"></div>
+
+                    <div class="p-5 bg-slate-50 rounded-2xl border space-y-4">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">دليل النطق التفاعلي الفوري (انقر للاستماع)</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">انقر على الكلمات المدرجة أدناه للاستماع إلى النطق الصوتي الصحيح مع توضيح مخارج الحروف:</p>
+                        
+                        <div class="flex flex-wrap gap-2 pt-1" id="pronunciation-words-container"></div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: PRACTICAL ENGLISH -->
+                <div id="content-dialogue" class="tab-content hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    <div class="border-b pb-3 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-teal-600"></i>
+                            <span>4. الإنجليزية العملية واليومية (Practical English)</span>
+                        </h3>
+                        <button onclick="playFullDialogue()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span>استمع للمحادثة كاملة</span>
+                        </button>
+                    </div>
+
+                    <!-- Scenario card -->
+                    <div class="p-4 bg-teal-50/50 rounded-xl border border-teal-100">
+                        <h4 class="text-xs font-bold text-teal-800 uppercase">سياق المحادثة اليومية (Scenario)</h4>
+                        <p id="dialogue-scenario" class="text-xs text-slate-600 leading-relaxed mt-1 font-sans" dir="ltr"></p>
+                    </div>
+
+                    <!-- Dynamic Dialogue Visualizer -->
+                    <div class="border rounded-2xl overflow-hidden bg-slate-50 shadow-xs">
+                        <div class="bg-slate-900 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+                            السيناريو الحواري اليومي المتكامل
+                        </div>
+                        <div class="p-4 space-y-3" id="dialogue-lines-container"></div>
+                    </div>
+
+                    <!-- Conversational Expressions -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">أبرز المصطلحات الاصطلاحية المستخدمة (Useful Expressions)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="dialogue-expressions-container"></div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: WRITING CHALLENGE -->
+                <div id="content-challenge" class="tab-content hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    <div class="border-b pb-3">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-fancy text-purple-600"></i>
+                            <span>5. التحدي الكتابي الفردي (Writing & Speaking Practice)</span>
+                        </h3>
+                    </div>
+
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        استخدم القواعد اللغوية والمفردات التي تعلمتها في هذا الدرس لصياغة إجابات مكتوبة وصحيحة للأسئلة أدناه:
+                    </p>
+
+                    <div class="space-y-4" id="writing-challenges-container"></div>
+
+                    <button onclick="submitWritingChallenge()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>إرسال الإجابات للمراجعة الذكية</span>
+                    </button>
+
+                    <div id="writing-challenge-feedback" class="hidden p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl space-y-2">
+                        <h4 class="font-bold text-sm">عمل ممتاز! أحسنت صنعاً!</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            تم استلام إجاباتك بنجاح. لقد قمت بصياغة وتوظيف القواعد والمصطلحات بشكل جيد للغاية بما يتوافق مع منهج Oxford English File.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-center py-6 border-t border-slate-800">
+        <p class="text-xs">مستند تفاعلي مدعوم بتقنيات Gemini 2.5 © 2026</p>
+        <p class="text-[10px] text-slate-500 mt-1">جميع الحقوق محفوظة لمنهج Oxford English File Curriculum Series</p>
+    </footer>
+
+    <!-- Full App Logic -->
+    <script>
+        // App State
+        let selectedLevelCode = '';
+        let selectedLevelLabel = '';
+        let generatedLessonData = null;
+        const apiKey = ""; // API key is populated inside the environment at runtime
+
+        // Helper function for Fetch with exponential backoff
+        async function fetchWithBackoff(url, options, retries = 5, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                return await response.json();
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(res => setTimeout(res, delay));
+                    return fetchWithBackoff(url, options, retries - 1, delay * 2);
+                }
+                throw err;
+            }
+        }
+
+        // Onboarding Selection Change
+        function selectLevel(code, label) {
+            selectedLevelCode = code;
+            selectedLevelLabel = label;
+            
+            // Remove selection styles from all buttons
+            document.querySelectorAll('#level-list button').forEach(btn => {
+                btn.className = "w-full text-right p-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
+            });
+
+            // Add active styling
+            const activeBtn = document.getElementById(`btn-${code}`);
+            if (activeBtn) {
+                activeBtn.className = "w-full text-right p-3 rounded-xl border text-xs font-bold flex justify-between items-center transition-all bg-indigo-50 border-indigo-400 text-indigo-700 ring-2 ring-indigo-500/10";
+            }
+
+            // Enable Generate Button
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.disabled = false;
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            // Reset tab button stylings
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-indigo-600 hover:bg-slate-50 flex items-center justify-center gap-2 shrink-0";
+            });
+
+            // Show current active tab content
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            // Set active button style
+            document.getElementById(`tab-${tabId}`).className = "tab-btn flex-1 py-2.5 px-4 rounded-lg text-xs font-bold transition-all text-indigo-600 bg-indigo-50 flex items-center justify-center gap-2 shrink-0";
+        }
+
+        // Call Gemini Text Generation API to yield custom structured lesson JSON
+        async function generateNewLesson() {
+            if (!selectedLevelCode) return;
+
+            const emptyState = document.getElementById('empty-state');
+            const loadingState = document.getElementById('loading-state');
+            const lessonContainer = document.getElementById('lesson-container');
+
+            emptyState.classList.add('hidden');
+            lessonContainer.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            // Formulate dynamic topic selector based on the level to secure diversity in content
+            let topicTheme = "eating habits and descriptive adjectives";
+            if (selectedLevelCode === 'A1') topicTheme = "daily routine and family relations";
+            if (selectedLevelCode === 'A2') topicTheme = "travel experiences and past tense";
+            if (selectedLevelCode === 'B1') topicTheme = "modern technology and present perfect";
+            if (selectedLevelCode === 'B1+') topicTheme = "job hunting, work life and modals of permission";
+            if (selectedLevelCode === 'B2.2') topicTheme = "urban living, social media trends and gerunds vs infinitives";
+            if (selectedLevelCode === 'C1') topicTheme = "global trade, financial metaphors and grammatical inversion";
+
+            const userPrompt = `Generate a high-quality lesson following the Oxford "English File" (5th Edition) series.
+            Level: ${selectedLevelLabel} (${selectedLevelCode})
+            Unit Topic Theme: ${topicTheme}
+            
+            Produce a highly complete, detailed and engaging lesson that includes exactly:
+            1. Lesson title and level designation.
+            2. Vocabulary: key thematic words with standard phonetics, definition, example sentence, and brief Arabic translations for terms. Additionally, add matching challenge definitions.
+            3. Grammar: simple concept introduction, rules with visual examples, and a multiple choice quiz of 2 detailed questions.
+            4. Pronunciation: comparative vowel sounds and list of pronunciation-focused terms.
+            5. Practical English: colloquial conversations, real-world dialogue transcripts, and key useful idioms.
+            6. Writing Challenge questions.`;
+
+            const systemPrompt = `You are an expert English Language Teaching (ELT) consultant specializing in Oxford English File. Your output MUST be in strict JSON format mapping perfectly to the given schema, without markdown formatting markers around the JSON. Keep descriptions informative.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            lessonTitle: { type: "STRING" },
+                            levelCode: { type: "STRING" },
+                            grammar: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    conceptExplanation: { type: "STRING" },
+                                    rules: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                rule: { type: "STRING" },
+                                                example: { type: "STRING" }
+                                            }
+                                        }
+                                    },
+                                    quickQuiz: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                question: { type: "STRING" },
+                                                options: { type: "ARRAY", items: { type: "STRING" } },
+                                                correctIndex: { type: "INTEGER" },
+                                                explanation: { type: "STRING" }
+                                            }
+                                        }
+                                    }
+                                },
+                                required: ["title", "conceptExplanation", "rules", "quickQuiz"]
+                            },
+                            vocabulary: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    theme: { type: "STRING" },
+                                    words: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                word: { type: "STRING" },
+                                                phonetics: { type: "STRING" },
+                                                definition: { type: "STRING" },
+                                                exampleSentence: { type: "STRING" },
+                                                arabicTranslation: { type: "STRING" }
+                                            }
+                                        }
+                                    },
+                                    matchingChallenge: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                term: { type: "STRING" },
+                                                definition: { type: "STRING" }
+                                            }
+                                        }
+                                    }
+                                },
+                                required: ["title", "theme", "words", "matchingChallenge"]
+                            },
+                            pronunciation: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    soundsToCompare: { type: "ARRAY", items: { type: "STRING" } },
+                                    wordsWithAudio: { type: "ARRAY", items: { type: "STRING" } }
+                                },
+                                required: ["title", "soundsToCompare", "wordsWithAudio"]
+                            },
+                            practicalEnglish: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    scenario: { type: "STRING" },
+                                    dialogue: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                speaker: { type: "STRING" },
+                                                speech: { type: "STRING" }
+                                            }
+                                        }
+                                    },
+                                    expressions: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                expression: { type: "STRING" },
+                                                use: { type: "STRING" }
+                                            }
+                                        }
+                                    }
+                                },
+                                required: ["title", "scenario", "dialogue", "expressions"]
+                            },
+                            writingChallenge: {
+                                type: "OBJECT",
+                                properties: {
+                                    questions: { type: "ARRAY", items: { type: "STRING" } }
+                                },
+                                required: ["questions"]
+                            }
+                        },
+                        required: ["lessonTitle", "levelCode", "grammar", "vocabulary", "pronunciation", "practicalEnglish", "writingChallenge"]
+                    }
+                }
+            };
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const response = await fetchWithBackoff(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                generatedLessonData = JSON.parse(rawText);
+
+                renderGeneratedLesson();
+
+            } catch (err) {
+                console.error("Gemini lesson generation error: ", err);
+                alert("حدث خطأ أثناء الاتصال بمحرك الذكاء الاصطناعي لتوليد الدرس. يرجى المحاولة لاحقاً.");
+                emptyState.classList.remove('hidden');
+                lessonContainer.classList.add('hidden');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        // Render Generated Lesson data into HTML DOM Elements
+        function renderGeneratedLesson() {
+            if (!generatedLessonData) return;
+
+            const lessonContainer = document.getElementById('lesson-container');
+            lessonContainer.classList.remove('hidden');
+
+            // Set Header details
+            document.getElementById('lesson-badge').textContent = `English File ${generatedLessonData.levelCode}`;
+            document.getElementById('lesson-title').textContent = generatedLessonData.lessonTitle;
+
+            // 1. Vocabulary Tab Rendering
+            document.getElementById('vocab-theme').textContent = generatedLessonData.vocabulary.theme;
+            const wordsList = document.getElementById('words-list-container');
+            wordsList.innerHTML = '';
+            generatedLessonData.vocabulary.words.forEach(w => {
+                wordsList.innerHTML += `
+                    <div class="p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border-r-4 border-emerald-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1 text-right w-full">
+                            <div class="flex items-center space-x-2 space-x-reverse">
+                                <span class="font-bold text-slate-900 english-content text-base">${w.word}</span>
+                                <span class="text-xs text-slate-400 font-mono english-content" dir="ltr">${w.phonetics}</span>
+                                <span class="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">${w.arabicTranslation}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 text-left font-sans mt-1 leading-relaxed" dir="ltr">${w.definition}</p>
+                            <p class="text-xs italic text-indigo-600 text-left font-sans" dir="ltr">"${w.exampleSentence}"</p>
+                        </div>
+                        <button onclick="speakText('${w.word}. ${w.exampleSentence.replace(/'/g, "\\'")}', 'Kore')" class="text-[11px] bg-white border px-3 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-1.5 shadow-xs shrink-0 text-slate-600">
+                            <i class="fa-solid fa-volume-high text-emerald-500"></i> إستمع
+                        </button>
+                    </div>
+                `;
+            });
+
+            // Vocabulary Matching Area Generator (Randomized Options)
+            const matchingArea = document.getElementById('matching-game-area');
+            matchingArea.innerHTML = '';
+            
+            const termsBox = document.createElement('div');
+            termsBox.className = 'space-y-2';
+            const selectBox = document.createElement('div');
+            selectBox.className = 'space-y-2';
+
+            // Create selector option keys
+            let definitions = generatedLessonData.vocabulary.matchingChallenge.map((item, idx) => ({
+                id: idx,
+                text: item.definition
+            }));
+
+            // Shuffle definitions for matching difficulty
+            const shuffledDefinitions = [...definitions].sort(() => Math.random() - 0.5);
+
+            generatedLessonData.vocabulary.matchingChallenge.forEach((item, idx) => {
+                termsBox.innerHTML += `
+                    <div class="p-2.5 bg-white rounded-lg border text-xs font-semibold text-slate-700 text-left english-content" dir="ltr">
+                        ${idx + 1}. ${item.term}
+                    </div>
+                `;
+
+                let selectOptions = `<option value="">اختر التعريف المناسب لـ #${idx + 1}...</option>`;
+                shuffledDefinitions.forEach(def => {
+                    selectOptions += `<option value="${def.id}">${def.text}</option>`;
+                });
+
+                selectBox.innerHTML += `
+                    <select id="vocab-match-${idx}" class="w-full p-2 bg-white rounded-lg border text-xs text-slate-600 focus:ring-1 focus:ring-indigo-500 font-sans" dir="ltr">
+                        ${selectOptions}
+                    </select>
+                `;
+            });
+
+            matchingArea.appendChild(termsBox);
+            matchingArea.appendChild(selectBox);
+            document.getElementById('vocab-matching-feedback').textContent = '';
+
+            // 2. Grammar Tab Rendering
+            document.getElementById('grammar-title').textContent = generatedLessonData.grammar.title;
+            document.getElementById('grammar-concept').textContent = generatedLessonData.grammar.conceptExplanation;
+
+            const rulesGrid = document.getElementById('grammar-rules-container');
+            rulesGrid.innerHTML = '';
+            generatedLessonData.grammar.rules.forEach(rule => {
+                rulesGrid.innerHTML += `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left" dir="ltr">
+                        <h4 class="text-xs font-bold text-slate-900 mb-2 border-b pb-1 font-sans">${rule.rule}</h4>
+                        <div class="p-2.5 bg-white rounded border-l-4 border-amber-500 text-xs text-slate-800 font-mono">
+                            ${rule.example}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Grammar Quiz Generating
+            const quizArea = document.getElementById('grammar-quiz-area');
+            quizArea.innerHTML = '';
+            generatedLessonData.grammar.quickQuiz.forEach((quiz, quizIdx) => {
+                let optionsHtml = '';
+                quiz.options.forEach((opt, optIdx) => {
+                    optionsHtml += `
+                        <label class="flex items-center space-x-2 space-x-reverse cursor-pointer font-sans" dir="ltr">
+                            <input type="radio" name="grammar-quiz-${quizIdx}" value="${optIdx}" class="text-indigo-600">
+                            <span>${opt}</span>
+                        </label>
+                    `;
+                });
+
+                quizArea.innerHTML += `
+                    <div class="p-4 bg-white rounded-xl border text-right space-y-2">
+                        <p class="font-bold text-slate-700 text-xs text-left" dir="ltr">${quizIdx + 1}. ${quiz.question}</p>
+                        <div class="flex flex-col sm:flex-row gap-4 pt-1">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('grammar-quiz-feedback').textContent = '';
+
+            // 3. Pronunciation Tab Rendering
+            const soundsGrid = document.getElementById('pronunciation-sounds-container');
+            soundsGrid.innerHTML = '';
+            generatedLessonData.pronunciation.soundsToCompare.forEach(soundDesc => {
+                soundsGrid.innerHTML += `
+                    <div class="p-4 bg-sky-50/50 rounded-xl border border-sky-100 space-y-2 text-center">
+                        <div class="text-xs font-bold text-slate-700 uppercase">مقارنة الصوتيات واللفظ</div>
+                        <p class="text-xs text-slate-600 font-sans leading-relaxed" dir="ltr">${soundDesc}</p>
+                        <button onclick="speakText('${soundDesc.replace(/'/g, "\\'")}', 'Kore')" class="mt-2 text-xs bg-white border border-sky-200 px-3 py-1 rounded-full mx-auto flex items-center gap-1.5 hover:bg-sky-50 text-slate-700">
+                            <i class="fa-solid fa-volume-high text-sky-600"></i> استمع للمقارنة
+                        </button>
+                    </div>
+                `;
+            });
+
+            const pronWords = document.getElementById('pronunciation-words-container');
+            pronWords.innerHTML = '';
+            generatedLessonData.pronunciation.wordsWithAudio.forEach(word => {
+                pronWords.innerHTML += `
+                    <button onclick="speakText('${word}', 'Kore')" class="bg-white hover:border-indigo-400 border text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-xs text-slate-700 font-bold font-sans" dir="ltr">
+                        <span>${word}</span>
+                        <i class="fa-solid fa-circle-play text-slate-400"></i>
+                    </button>
+                `;
+            });
+
+            // 4. Practical English Tab Rendering
+            document.getElementById('dialogue-scenario').textContent = generatedLessonData.practicalEnglish.scenario;
+            
+            const dialogueLines = document.getElementById('dialogue-lines-container');
+            dialogueLines.innerHTML = '';
+            generatedLessonData.practicalEnglish.dialogue.forEach(turn => {
+                dialogueLines.innerHTML += `
+                    <div class="flex items-start space-x-2 space-x-reverse text-left font-sans" dir="ltr">
+                        <span class="font-bold text-indigo-700 w-16 shrink-0 text-right">${turn.speaker}:</span>
+                        <div class="bg-white p-2.5 rounded-lg border shadow-xs max-w-lg text-slate-800 text-xs">
+                            ${turn.speech}
+                        </div>
+                    </div>
+                `;
+            });
+
+            const expressionsGrid = document.getElementById('dialogue-expressions-container');
+            expressionsGrid.innerHTML = '';
+            generatedLessonData.practicalEnglish.expressions.forEach(exp => {
+                expressionsGrid.innerHTML += `
+                    <div class="p-3 bg-teal-50/40 rounded-lg border border-teal-100/80 text-left font-sans" dir="ltr">
+                        <strong class="text-slate-900 text-xs">${exp.expression}</strong>
+                        <p class="text-[11px] text-slate-500 mt-0.5">${exp.use}</p>
+                    </div>
+                `;
+            });
+
+            // 5. Writing Challenge Tab Rendering
+            const writingChallenges = document.getElementById('writing-challenges-container');
+            writingChallenges.innerHTML = '';
+            generatedLessonData.writingChallenge.questions.forEach((q, qIdx) => {
+                writingChallenges.innerHTML += `
+                    <div class="space-y-1">
+                        <label class="block font-semibold text-slate-700 text-xs text-left font-sans" dir="ltr">${qIdx + 1}. ${q}</label>
+                        <textarea id="challenge-writing-${qIdx}" rows="2" class="w-full p-2.5 border rounded-lg focus:ring-1 focus:ring-indigo-500 text-xs font-sans" dir="ltr" placeholder="Write your complete response here..."></textarea>
+                    </div>
+                `;
+            });
+            document.getElementById('writing-challenge-feedback').classList.add('hidden');
+
+            // Default to vocabulary Tab
+            switchTab('vocab');
+        }
+
+        // Verify Student Matching Selection
+        function checkVocabMatching() {
+            if (!generatedLessonData) return;
+
+            let correctCount = 0;
+            const size = generatedLessonData.vocabulary.matchingChallenge.length;
+
+            for (let i = 0; i < size; i++) {
+                const selectVal = document.getElementById(`vocab-match-${i}`).value;
+                if (parseInt(selectVal, 10) === i) {
+                    correctCount++;
+                }
+            }
+
+            const feedback = document.getElementById('vocab-matching-feedback');
+            if (correctCount === size) {
+                feedback.textContent = `رائع! تطابق كلي بنسبة 100% (${correctCount}/${size})`;
+                feedback.className = "text-xs font-bold text-emerald-600";
+            } else {
+                feedback.textContent = `تحتاج مراجعة، أجبت صح على (${correctCount}/${size}) من التعريفات.`;
+                feedback.className = "text-xs font-bold text-rose-500";
+            }
+        }
+
+        // Verify Student Grammar Quiz Answers
+        function checkGrammarQuiz() {
+            if (!generatedLessonData) return;
+
+            let correctCount = 0;
+            const size = generatedLessonData.grammar.quickQuiz.length;
+
+            for (let i = 0; i < size; i++) {
+                const checkedOpt = document.querySelector(`input[name="grammar-quiz-${i}"]:checked`);
+                if (checkedOpt) {
+                    const ansVal = parseInt(checkedOpt.value, 10);
+                    if (ansVal === generatedLessonData.grammar.quickQuiz[i].correctIndex) {
+                        correctCount++;
+                    }
+                }
+            }
+
+            const feedback = document.getElementById('grammar-quiz-feedback');
+            if (correctCount === size) {
+                feedback.textContent = `أداء باهر! جميع الإجابات صحيحة (${correctCount}/${size})`;
+                feedback.className = "text-xs font-bold text-emerald-600";
+            } else {
+                feedback.textContent = `أجبت بشكل صحيح على (${correctCount}/${size}). تذكر مراجعة القواعد بالأعلى!`;
+                feedback.className = "text-xs font-bold text-rose-500";
+            }
+        }
+
+        // Simulated submit of the custom writing responses
+        function submitWritingChallenge() {
+            let hasText = true;
+            const size = generatedLessonData.writingChallenge.questions.length;
+
+            for (let i = 0; i < size; i++) {
+                const val = document.getElementById(`challenge-writing-${i}`).value.trim();
+                if (val.length < 5) {
+                    hasText = false;
+                }
+            }
+
+            if (!hasText) {
+                alert("الرجاء كتابة إجابة مكتملة ومقروءة لكل سؤال من الأسئلة المطروحة قبل المتابعة.");
+                return;
+            }
+
+            document.getElementById('writing-challenge-feedback').classList.remove('hidden');
+        }
+
+        // Play the conversation transcript fully in sequence
+        function playFullDialogue() {
+            if (!generatedLessonData) return;
+
+            let scriptText = '';
+            generatedLessonData.practicalEnglish.dialogue.forEach(turn => {
+                scriptText += `${turn.speaker}: ${turn.speech} `;
+            });
+
+            speakText(scriptText, "Kore");
+        }
+
+        // Speak Text using Google Text-To-Speech endpoint with backoff
+        async function speakText(sentence, voiceName = "Kore") {
+            const inputField = document.getElementById('tts-input');
+            const loadingBar = document.getElementById('tts-loading');
+            
+            inputField.value = sentence;
+            loadingBar.classList.remove('hidden');
+            loadingBar.classList.add('flex');
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [{ text: `Read with perfectly clear British RP accent: "${sentence}"` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: {
+                                    voiceName: voiceName
+                                }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+
+                const result = await fetchWithBackoff(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const base64Audio = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                const mimeType = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'audio/L16;rate=24000';
+
+                if (base64Audio) {
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)?.[1] || "24000", 10);
+                    playPCMBase64(base64Audio, sampleRate);
+                } else {
+                    console.error("Audio generation structure is invalid", result);
+                    alert("عذراً، تعذر نطق الجملة الحالية. يرجى إعادة المحاولة.");
+                }
+            } catch (err) {
+                console.error("TTS Generator error: ", err);
+                alert("حدث خطأ ما أثناء تشغيل الصوت. يرجى تكرار المحاولة.");
+            } finally {
+                loadingBar.classList.add('hidden');
+                loadingBar.classList.remove('flex');
+            }
+        }
+
+        // Custom Quick Trigger for custom TTS Console box
+        function triggerCustomTTS() {
+            const sentence = document.getElementById('tts-input').value;
+            if (sentence.trim()) {
+                speakText(sentence, "Kore");
+            }
+        }
+
+        // Convert base64 RAW PCM to playable WAV Audio blob
+        function playPCMBase64(base64Data, sampleRate) {
+            const rawBinary = atob(base64Data);
+            const rawLength = rawBinary.length;
+            const buffer = new ArrayBuffer(rawLength);
+            const view = new Uint8Array(buffer);
+            
+            for (let i = 0; i < rawLength; i++) {
+                view[i] = rawBinary.charCodeAt(i);
+            }
+
+            const wavBuffer = new ArrayBuffer(44 + rawLength);
+            const wavView = new DataView(wavBuffer);
+
+            // Set Header bytes
+            writeString(wavView, 0, 'RIFF');
+            wavView.setUint32(4, 36 + rawLength, true);
+            writeString(wavView, 8, 'WAVE');
+            writeString(wavView, 12, 'fmt ');
+            wavView.setUint32(16, 16, true);
+            wavView.setUint16(20, 1, true); // PCM format
+            wavView.setUint16(22, 1, true); // Mono channel
+            wavView.setUint32(24, sampleRate, true);
+            wavView.setUint32(28, sampleRate * 2, true);
+            wavView.setUint16(32, 2, true);
+            wavView.setUint16(34, 16, true);
+            writeString(wavView, 36, 'data');
+            wavView.setUint32(40, rawLength, true);
+
+            for (let i = 0; i < rawLength; i++) {
+                wavView.setUint8(44 + i, view[i]);
+            }
+
+            const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = document.getElementById('audio-player');
+            audio.src = audioUrl;
+            audio.play();
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+    </script>
+</body>
+</html>
